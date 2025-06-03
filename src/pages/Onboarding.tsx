@@ -19,7 +19,6 @@ const Onboarding = () => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    email: user?.email || '',
     age: '',
     gender: '',
     height: '',
@@ -33,8 +32,72 @@ const Onboarding = () => {
     recent_race_time: ''
   });
 
+  // Unit conversion functions
+  const convertHeight = (value: string, fromUnit: string, toUnit: string) => {
+    if (!value || fromUnit === toUnit) return value;
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return value;
+    
+    if (fromUnit === 'mi' && toUnit === 'km') {
+      // Convert inches to cm
+      return (numValue * 2.54).toFixed(1);
+    } else if (fromUnit === 'km' && toUnit === 'mi') {
+      // Convert cm to inches
+      return (numValue / 2.54).toFixed(1);
+    }
+    return value;
+  };
+
+  const convertWeight = (value: string, fromUnit: string, toUnit: string) => {
+    if (!value || fromUnit === toUnit) return value;
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return value;
+    
+    if (fromUnit === 'mi' && toUnit === 'km') {
+      // Convert lbs to kg
+      return (numValue * 0.453592).toFixed(1);
+    } else if (fromUnit === 'km' && toUnit === 'mi') {
+      // Convert kg to lbs
+      return (numValue / 0.453592).toFixed(1);
+    }
+    return value;
+  };
+
+  const convertMileage = (value: string, fromUnit: string, toUnit: string) => {
+    if (!value || fromUnit === toUnit) return value;
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return value;
+    
+    if (fromUnit === 'mi' && toUnit === 'km') {
+      // Convert miles to km
+      return (numValue * 1.60934).toFixed(1);
+    } else if (fromUnit === 'km' && toUnit === 'mi') {
+      // Convert km to miles
+      return (numValue / 1.60934).toFixed(1);
+    }
+    return value;
+  };
+
   const handleInputChange = (field: string, value: string | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'preferred_unit') {
+      const oldUnit = formData.preferred_unit;
+      const newUnit = value as string;
+      
+      // Convert existing values to new unit
+      const convertedHeight = convertHeight(formData.height, oldUnit, newUnit);
+      const convertedWeight = convertWeight(formData.weight, oldUnit, newUnit);
+      const convertedMileage = convertMileage(formData.weekly_mileage, oldUnit, newUnit);
+      
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+        height: convertedHeight,
+        weight: convertedWeight,
+        weekly_mileage: convertedMileage
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleTrainingDayChange = (day: string, checked: boolean) => {
@@ -60,7 +123,7 @@ const Onboarding = () => {
       const { error } = await supabase
         .from('runners')
         .upsert({
-          email: user.email,
+          email: user.email!,
           age: formData.age ? parseInt(formData.age) : null,
           gender: formData.gender || null,
           height: formData.height ? parseFloat(formData.height) : null,
@@ -137,6 +200,11 @@ const Onboarding = () => {
   const StepIcon = stepIcons[currentStep - 1];
   const trainingDayOptions = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+  // Get unit labels based on preferred unit
+  const heightLabel = formData.preferred_unit === 'mi' ? 'Height (inches)' : 'Height (cm)';
+  const weightLabel = formData.preferred_unit === 'mi' ? 'Weight (lbs)' : 'Weight (kg)';
+  const mileageLabel = formData.preferred_unit === 'mi' ? 'Current Weekly Mileage (miles)' : 'Current Weekly Mileage (km)';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
       {/* Header */}
@@ -208,29 +276,6 @@ const Onboarding = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="height">Height (inches)</Label>
-                      <Input
-                        id="height"
-                        type="number"
-                        value={formData.height}
-                        onChange={(e) => handleInputChange('height', e.target.value)}
-                        placeholder="70"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="weight">Weight (lbs)</Label>
-                      <Input
-                        id="weight"
-                        type="number"
-                        value={formData.weight}
-                        onChange={(e) => handleInputChange('weight', e.target.value)}
-                        placeholder="150"
-                      />
-                    </div>
-                  </div>
-
                   <div>
                     <Label>Preferred Units</Label>
                     <RadioGroup 
@@ -247,6 +292,29 @@ const Onboarding = () => {
                         <Label htmlFor="kilometers">Kilometers</Label>
                       </div>
                     </RadioGroup>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="height">{heightLabel}</Label>
+                      <Input
+                        id="height"
+                        type="number"
+                        value={formData.height}
+                        onChange={(e) => handleInputChange('height', e.target.value)}
+                        placeholder={formData.preferred_unit === 'mi' ? "70" : "178"}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="weight">{weightLabel}</Label>
+                      <Input
+                        id="weight"
+                        type="number"
+                        value={formData.weight}
+                        onChange={(e) => handleInputChange('weight', e.target.value)}
+                        placeholder={formData.preferred_unit === 'mi' ? "150" : "68"}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
@@ -280,13 +348,13 @@ const Onboarding = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="weekly_mileage">Current Weekly Mileage</Label>
+                    <Label htmlFor="weekly_mileage">{mileageLabel}</Label>
                     <Input
                       id="weekly_mileage"
                       type="number"
                       value={formData.weekly_mileage}
                       onChange={(e) => handleInputChange('weekly_mileage', e.target.value)}
-                      placeholder="25"
+                      placeholder={formData.preferred_unit === 'mi' ? "25" : "40"}
                     />
                   </div>
 
