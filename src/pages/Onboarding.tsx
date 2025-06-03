@@ -121,20 +121,20 @@ const Onboarding = () => {
     try {
       const { error } = await supabase
         .from('runners')
-        .upsert([{
+        .upsert({
           id: user.id,
           email: user.email || '',
           age: formData.age ? parseInt(formData.age) : null,
-          gender: formData.gender || null,
+          gender: formData.gender as "Male" | "Female" | "Other" || null,
           height: formData.height ? parseFloat(formData.height) : null,
           weight: formData.weight ? parseFloat(formData.weight) : null,
-          experience_level: formData.experience_level || null,
+          experience_level: formData.experience_level as "Novice" | "Recreational" | "Competitive" | "Elite" || null,
           weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
           training_days: formData.training_days,
-          preferred_unit: formData.preferred_unit,
-          race_goal: formData.race_goal || null,
+          preferred_unit: formData.preferred_unit as "mi" | "km",
+          race_goal: formData.race_goal as "5K" | "10K" | "Half Marathon" | "Marathon" || null,
           race_date: formData.race_date || null,
-        }]);
+        });
 
       if (error) {
         console.error('Error saving runner profile:', error);
