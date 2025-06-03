@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -122,6 +123,7 @@ const Onboarding = () => {
       const { error } = await supabase
         .from('runners')
         .upsert({
+          id: user.id,
           age: formData.age ? parseInt(formData.age) : null,
           gender: formData.gender || null,
           height: formData.height ? parseFloat(formData.height) : null,
@@ -132,7 +134,7 @@ const Onboarding = () => {
           preferred_unit: formData.preferred_unit,
           race_goal: formData.race_goal || null,
           race_date: formData.race_date || null,
-        }, { onConflict: 'email' });
+        });
 
       if (error) {
         console.error('Error saving runner profile:', error);
