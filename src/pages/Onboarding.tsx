@@ -119,33 +119,41 @@ const Onboarding = () => {
     }
 
     try {
+      console.log('Saving runner profile for user:', user.id);
+      console.log('Form data:', formData);
+      
+      const profileData = {
+        id: user.id,
+        email: user.email || '',
+        age: formData.age ? parseInt(formData.age) : null,
+        gender: formData.gender ? (formData.gender as "Male" | "Female" | "Other") : null,
+        height: formData.height ? parseFloat(formData.height) : null,
+        weight: formData.weight ? parseFloat(formData.weight) : null,
+        experience_level: formData.experience_level ? (formData.experience_level as "Novice" | "Recreational" | "Competitive" | "Elite") : null,
+        weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
+        training_days: formData.training_days,
+        preferred_unit: formData.preferred_unit as "mi" | "km",
+        race_goal: formData.race_goal ? (formData.race_goal as "5K" | "10K" | "Half Marathon" | "Marathon") : null,
+        race_date: formData.race_date || null,
+      };
+
+      console.log('Profile data to insert:', profileData);
+
       const { error } = await supabase
         .from('runners')
-        .upsert({
-          id: user.id,
-          email: user.email || '',
-          age: formData.age ? parseInt(formData.age) : null,
-          gender: formData.gender as "Male" | "Female" | "Other" || null,
-          height: formData.height ? parseFloat(formData.height) : null,
-          weight: formData.weight ? parseFloat(formData.weight) : null,
-          experience_level: formData.experience_level as "Novice" | "Recreational" | "Competitive" | "Elite" || null,
-          weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
-          training_days: formData.training_days,
-          preferred_unit: formData.preferred_unit as "mi" | "km",
-          race_goal: formData.race_goal as "5K" | "10K" | "Half Marathon" | "Marathon" || null,
-          race_date: formData.race_date || null,
-        });
+        .upsert(profileData);
 
       if (error) {
         console.error('Error saving runner profile:', error);
         toast({
           title: "Error",
-          description: "Failed to save your profile. Please try again.",
+          description: `Failed to save your profile: ${error.message}`,
           variant: "destructive",
         });
         return false;
       }
 
+      console.log('Profile saved successfully');
       return true;
     } catch (error) {
       console.error('Error saving runner profile:', error);
