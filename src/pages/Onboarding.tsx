@@ -13,6 +13,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { testDatabaseConnection } from '@/utils/debugDatabase';
+import type { Database } from '@/integrations/supabase/types';
+
+type RunnerInsert = Database['public']['Tables']['runners']['Insert'];
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -150,18 +153,19 @@ const Onboarding = () => {
       console.log('Current user from auth:', currentUser);
       console.log('User error:', userError);
       
-      const profileData = {
+      // Properly cast the data to match the database schema
+      const profileData: RunnerInsert = {
         id: user.id,
         email: user.email || '',
         age: formData.age ? parseInt(formData.age) : null,
-        gender: formData.gender ? (formData.gender as "Male" | "Female" | "Other") : null,
+        gender: formData.gender ? (formData.gender as Database['public']['Enums']['gender_type']) : null,
         height: formData.height ? parseFloat(formData.height) : null,
         weight: formData.weight ? parseFloat(formData.weight) : null,
-        experience_level: formData.experience_level ? (formData.experience_level as "Novice" | "Recreational" | "Competitive" | "Elite") : null,
+        experience_level: formData.experience_level ? (formData.experience_level as Database['public']['Enums']['experience_level_type']) : null,
         weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
-        training_days: formData.training_days,
-        preferred_unit: formData.preferred_unit as "mi" | "km",
-        race_goal: formData.race_goal ? (formData.race_goal as "5K" | "10K" | "Half Marathon" | "Marathon") : null,
+        training_days: formData.training_days.length > 0 ? formData.training_days : null,
+        preferred_unit: formData.preferred_unit as Database['public']['Enums']['unit_type'],
+        race_goal: formData.race_goal ? (formData.race_goal as Database['public']['Enums']['race_type']) : null,
         race_date: formData.race_date || null,
       };
 
