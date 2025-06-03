@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -79,9 +78,9 @@ const Onboarding = () => {
   };
 
   const handleInputChange = (field: string, value: string | string[]) => {
-    if (field === 'preferred_unit') {
+    if (field === 'preferred_unit' && typeof value === 'string') {
       const oldUnit = formData.preferred_unit;
-      const newUnit = value as string;
+      const newUnit = value;
       
       // Convert existing values to new unit
       const convertedHeight = convertHeight(formData.height, oldUnit, newUnit);
@@ -90,7 +89,7 @@ const Onboarding = () => {
       
       setFormData(prev => ({
         ...prev,
-        [field]: value,
+        preferred_unit: newUnit,
         height: convertedHeight,
         weight: convertedWeight,
         weekly_mileage: convertedMileage
@@ -134,7 +133,7 @@ const Onboarding = () => {
           preferred_unit: formData.preferred_unit,
           race_goal: formData.race_goal || null,
           race_date: formData.race_date || null,
-        });
+        }, { onConflict: 'email' });
 
       if (error) {
         console.error('Error saving runner profile:', error);
