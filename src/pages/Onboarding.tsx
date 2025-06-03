@@ -123,6 +123,7 @@ const Onboarding = () => {
         .from('runners')
         .upsert([{
           id: user.id,
+          email: user.email || '',
           age: formData.age ? parseInt(formData.age) : null,
           gender: formData.gender || null,
           height: formData.height ? parseFloat(formData.height) : null,
