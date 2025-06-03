@@ -2,13 +2,26 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Home, Calendar, BookOpen, User, Menu } from 'lucide-react';
+import { Home, Calendar, BookOpen, User, Menu, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({
+      title: "Signed out successfully",
+      description: "You have been logged out.",
+    });
+    navigate('/');
+  };
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: Home },
@@ -42,6 +55,20 @@ const Navigation = () => {
           </Button>
         );
       })}
+      
+      {user && (
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={() => {
+            handleSignOut();
+            setIsOpen(false);
+          }}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Sign Out
+        </Button>
+      )}
     </nav>
   );
 
@@ -55,53 +82,66 @@ const Navigation = () => {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full"></div>
               <h1 
                 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent cursor-pointer"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate(user ? '/dashboard' : '/')}
               >
                 RunWise
               </h1>
             </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                
-                return (
+            {user && (
+              <>
+                {/* Desktop Navigation */}
+                <div className="hidden md:flex items-center space-x-1">
+                  {navItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.path;
+                    
+                    return (
+                      <Button
+                        key={item.path}
+                        variant={isActive ? "default" : "ghost"}
+                        className={`${
+                          isActive 
+                            ? "bg-gradient-to-r from-blue-600 to-orange-500 text-white" 
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                        }`}
+                        onClick={() => navigate(item.path)}
+                      >
+                        <Icon className="mr-2 h-4 w-4" />
+                        {item.label}
+                      </Button>
+                    );
+                  })}
+                  
                   <Button
-                    key={item.path}
-                    variant={isActive ? "default" : "ghost"}
-                    className={`${
-                      isActive 
-                        ? "bg-gradient-to-r from-blue-600 to-orange-500 text-white" 
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                    }`}
-                    onClick={() => navigate(item.path)}
+                    variant="ghost"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={handleSignOut}
                   >
-                    <Icon className="mr-2 h-4 w-4" />
-                    {item.label}
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
                   </Button>
-                );
-              })}
-            </div>
-
-            {/* Mobile Navigation */}
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden">
-                  <Menu className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-64">
-                <div className="flex items-center space-x-2 mb-6">
-                  <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full"></div>
-                  <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-                    RunWise
-                  </span>
                 </div>
-                <NavContent />
-              </SheetContent>
-            </Sheet>
+
+                {/* Mobile Navigation */}
+                <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="icon" className="md:hidden">
+                      <Menu className="h-4 w-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-64">
+                    <div className="flex items-center space-x-2 mb-6">
+                      <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full"></div>
+                      <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
+                        RunWise
+                      </span>
+                    </div>
+                    <NavContent />
+                  </SheetContent>
+                </Sheet>
+              </>
+            )}
           </div>
         </div>
       </header>

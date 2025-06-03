@@ -9,7 +9,201 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      runners: {
+        Row: {
+          age: number | null
+          created_at: string
+          email: string
+          experience_level:
+            | Database["public"]["Enums"]["experience_level_type"]
+            | null
+          gender: Database["public"]["Enums"]["gender_type"] | null
+          height: number | null
+          id: string
+          preferred_unit: Database["public"]["Enums"]["unit_type"] | null
+          race_date: string | null
+          race_goal: Database["public"]["Enums"]["race_type"] | null
+          training_days: string[] | null
+          updated_at: string
+          vdot: number | null
+          weekly_mileage: number | null
+          weight: number | null
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string
+          email: string
+          experience_level?:
+            | Database["public"]["Enums"]["experience_level_type"]
+            | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          height?: number | null
+          id?: string
+          preferred_unit?: Database["public"]["Enums"]["unit_type"] | null
+          race_date?: string | null
+          race_goal?: Database["public"]["Enums"]["race_type"] | null
+          training_days?: string[] | null
+          updated_at?: string
+          vdot?: number | null
+          weekly_mileage?: number | null
+          weight?: number | null
+        }
+        Update: {
+          age?: number | null
+          created_at?: string
+          email?: string
+          experience_level?:
+            | Database["public"]["Enums"]["experience_level_type"]
+            | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          height?: number | null
+          id?: string
+          preferred_unit?: Database["public"]["Enums"]["unit_type"] | null
+          race_date?: string | null
+          race_goal?: Database["public"]["Enums"]["race_type"] | null
+          training_days?: string[] | null
+          updated_at?: string
+          vdot?: number | null
+          weekly_mileage?: number | null
+          weight?: number | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          runner_id: string
+          start_date: string | null
+          tier: Database["public"]["Enums"]["tier_type"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          runner_id: string
+          start_date?: string | null
+          tier?: Database["public"]["Enums"]["tier_type"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          runner_id?: string
+          start_date?: string | null
+          tier?: Database["public"]["Enums"]["tier_type"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_plans: {
+        Row: {
+          created_at: string
+          current_week: number | null
+          id: string
+          plan_data: Json | null
+          race_type: Database["public"]["Enums"]["race_type"] | null
+          recalibration_needed: boolean | null
+          runner_id: string
+          start_date: string | null
+          tier: Database["public"]["Enums"]["tier_type"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_week?: number | null
+          id?: string
+          plan_data?: Json | null
+          race_type?: Database["public"]["Enums"]["race_type"] | null
+          recalibration_needed?: boolean | null
+          runner_id: string
+          start_date?: string | null
+          tier?: Database["public"]["Enums"]["tier_type"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_week?: number | null
+          id?: string
+          plan_data?: Json | null
+          race_type?: Database["public"]["Enums"]["race_type"] | null
+          recalibration_needed?: boolean | null
+          runner_id?: string
+          start_date?: string | null
+          tier?: Database["public"]["Enums"]["tier_type"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_plans_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts: {
+        Row: {
+          created_at: string
+          date: string | null
+          description: string | null
+          duration: number | null
+          id: string
+          intensity: Database["public"]["Enums"]["intensity_type"] | null
+          plan_id: string
+          status: Database["public"]["Enums"]["workout_status_type"] | null
+          type: Database["public"]["Enums"]["workout_type"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string
+          intensity?: Database["public"]["Enums"]["intensity_type"] | null
+          plan_id: string
+          status?: Database["public"]["Enums"]["workout_status_type"] | null
+          type?: Database["public"]["Enums"]["workout_type"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string
+          intensity?: Database["public"]["Enums"]["intensity_type"] | null
+          plan_id?: string
+          status?: Database["public"]["Enums"]["workout_status_type"] | null
+          type?: Database["public"]["Enums"]["workout_type"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workouts_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "training_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +212,21 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      experience_level_type: "Novice" | "Recreational" | "Competitive" | "Elite"
+      gender_type: "Male" | "Female" | "Other"
+      intensity_type: "Low" | "Moderate" | "High"
+      race_type: "5K" | "10K" | "Half Marathon" | "Marathon"
+      tier_type: "Free" | "Basic" | "Premium"
+      unit_type: "km" | "mi"
+      workout_status_type: "Pending" | "Completed" | "Skipped"
+      workout_type:
+        | "Easy"
+        | "Long"
+        | "Tempo"
+        | "Interval"
+        | "Hill"
+        | "Cross-training"
+        | "Recovery"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +341,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      experience_level_type: ["Novice", "Recreational", "Competitive", "Elite"],
+      gender_type: ["Male", "Female", "Other"],
+      intensity_type: ["Low", "Moderate", "High"],
+      race_type: ["5K", "10K", "Half Marathon", "Marathon"],
+      tier_type: ["Free", "Basic", "Premium"],
+      unit_type: ["km", "mi"],
+      workout_status_type: ["Pending", "Completed", "Skipped"],
+      workout_type: [
+        "Easy",
+        "Long",
+        "Tempo",
+        "Interval",
+        "Hill",
+        "Cross-training",
+        "Recovery",
+      ],
+    },
   },
 } as const

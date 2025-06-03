@@ -6,45 +6,109 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, ArrowRight, User, Target, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    email: '',
+    email: user?.email || '',
     age: '',
     gender: '',
     height: '',
     weight: '',
     experience_level: '',
     weekly_mileage: '',
-    training_days: '',
-    preferred_unit: 'miles',
+    training_days: [] as string[],
+    preferred_unit: 'mi',
     race_goal: '',
     race_date: '',
     recent_race_time: ''
   });
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleNext = () => {
+  const handleTrainingDayChange = (day: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      training_days: checked 
+        ? [...prev.training_days, day]
+        : prev.training_days.filter(d => d !== day)
+    }));
+  };
+
+  const saveRunnerProfile = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a profile.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('runners')
+        .upsert({
+          email: user.email,
+          age: formData.age ? parseInt(formData.age) : null,
+          gender: formData.gender || null,
+          height: formData.height ? parseFloat(formData.height) : null,
+          weight: formData.weight ? parseFloat(formData.weight) : null,
+          experience_level: formData.experience_level || null,
+          weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
+          training_days: formData.training_days,
+          preferred_unit: formData.preferred_unit,
+          race_goal: formData.race_goal || null,
+          race_date: formData.race_date || null,
+        });
+
+      if (error) {
+        console.error('Error saving runner profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save your profile. Please try again.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error saving runner profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your profile. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const handleNext = async () => {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
-      // This will be connected to Supabase to save the runner profile
-      toast({
-        title: "Profile Created!",
-        description: "Your training plan is being generated...",
-      });
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+      const success = await saveRunnerProfile();
+      if (success) {
+        toast({
+          title: "Profile Created!",
+          description: "Your running profile has been saved.",
+        });
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
+      }
     }
   };
 
@@ -52,16 +116,16 @@ const Onboarding = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     } else {
-      navigate('/');
+      navigate('/dashboard');
     }
   };
 
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
-        return formData.email && formData.age && formData.gender && formData.height && formData.weight;
+        return formData.age && formData.gender && formData.height && formData.weight;
       case 2:
-        return formData.experience_level && formData.weekly_mileage && formData.training_days;
+        return formData.experience_level && formData.training_days.length > 0;
       case 3:
         return formData.race_goal && formData.race_date;
       default:
@@ -71,6 +135,7 @@ const Onboarding = () => {
 
   const stepIcons = [User, Target, Calendar];
   const StepIcon = stepIcons[currentStep - 1];
+  const trainingDayOptions = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
@@ -117,17 +182,6 @@ const Onboarding = () => {
             <CardContent className="space-y-6">
               {currentStep === 1 && (
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="your.email@example.com"
-                    />
-                  </div>
-                  
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="age">Age</Label>
@@ -146,9 +200,9 @@ const Onboarding = () => {
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="Male">Male</SelectItem>
+                          <SelectItem value="Female">Female</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -185,11 +239,11 @@ const Onboarding = () => {
                       className="flex space-x-6 mt-2"
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="miles" id="miles" />
+                        <RadioGroupItem value="mi" id="miles" />
                         <Label htmlFor="miles">Miles</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="kilometers" id="kilometers" />
+                        <RadioGroupItem value="km" id="kilometers" />
                         <Label htmlFor="kilometers">Kilometers</Label>
                       </div>
                     </RadioGroup>
@@ -207,50 +261,49 @@ const Onboarding = () => {
                       className="mt-2 space-y-2"
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="beginner" id="beginner" />
-                        <Label htmlFor="beginner">Beginner (0-1 years)</Label>
+                        <RadioGroupItem value="Novice" id="novice" />
+                        <Label htmlFor="novice">Novice (0-1 years)</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="intermediate" id="intermediate" />
-                        <Label htmlFor="intermediate">Intermediate (1-3 years)</Label>
+                        <RadioGroupItem value="Recreational" id="recreational" />
+                        <Label htmlFor="recreational">Recreational (1-3 years)</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="advanced" id="advanced" />
-                        <Label htmlFor="advanced">Advanced (3+ years)</Label>
+                        <RadioGroupItem value="Competitive" id="competitive" />
+                        <Label htmlFor="competitive">Competitive (3-5 years)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Elite" id="elite" />
+                        <Label htmlFor="elite">Elite (5+ years)</Label>
                       </div>
                     </RadioGroup>
                   </div>
 
                   <div>
                     <Label htmlFor="weekly_mileage">Current Weekly Mileage</Label>
-                    <Select value={formData.weekly_mileage} onValueChange={(value) => handleInputChange('weekly_mileage', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your current weekly mileage" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0-10">0-10 miles/week</SelectItem>
-                        <SelectItem value="10-20">10-20 miles/week</SelectItem>
-                        <SelectItem value="20-30">20-30 miles/week</SelectItem>
-                        <SelectItem value="30-40">30-40 miles/week</SelectItem>
-                        <SelectItem value="40+">40+ miles/week</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="weekly_mileage"
+                      type="number"
+                      value={formData.weekly_mileage}
+                      onChange={(e) => handleInputChange('weekly_mileage', e.target.value)}
+                      placeholder="25"
+                    />
                   </div>
 
                   <div>
-                    <Label htmlFor="training_days">Training Days per Week</Label>
-                    <Select value={formData.training_days} onValueChange={(value) => handleInputChange('training_days', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="How many days can you train?" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="3">3 days</SelectItem>
-                        <SelectItem value="4">4 days</SelectItem>
-                        <SelectItem value="5">5 days</SelectItem>
-                        <SelectItem value="6">6 days</SelectItem>
-                        <SelectItem value="7">7 days</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label>Training Days</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      {trainingDayOptions.map((day) => (
+                        <div key={day} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={day}
+                            checked={formData.training_days.includes(day)}
+                            onCheckedChange={(checked) => handleTrainingDayChange(day, checked as boolean)}
+                          />
+                          <Label htmlFor={day}>{day}</Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div>
@@ -299,7 +352,7 @@ const Onboarding = () => {
                     <h4 className="font-semibold text-blue-900 mb-2">Your Training Plan Preview</h4>
                     <p className="text-blue-700 text-sm">
                       Based on your inputs, we'll create a personalized {formData.race_goal} training plan 
-                      with {formData.training_days} training days per week, starting immediately and 
+                      with {formData.training_days.length} training days per week, starting immediately and 
                       leading up to your race on {formData.race_date ? new Date(formData.race_date).toLocaleDateString() : '[selected date]'}.
                     </p>
                   </div>
@@ -321,7 +374,7 @@ const Onboarding = () => {
                   disabled={!isStepValid()}
                   className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white flex items-center"
                 >
-                  {currentStep === 3 ? 'Create Plan' : 'Next'}
+                  {currentStep === 3 ? 'Create Profile' : 'Next'}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
