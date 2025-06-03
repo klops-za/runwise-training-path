@@ -20,6 +20,17 @@ export const testDatabaseConnection = async () => {
     const { data: session, error: sessionError } = await supabase.auth.getSession();
     console.log('Session test:', { session, sessionError });
     
+    // Test RLS policies by attempting a simple select
+    if (user.user) {
+      console.log('Testing RLS policies...');
+      const { data: rlsTest, error: rlsError } = await supabase
+        .from('runners')
+        .select('*')
+        .eq('id', user.user.id);
+      
+      console.log('RLS test result:', { rlsTest, rlsError });
+    }
+    
     return { success: !testError && !authError && !sessionError };
   } catch (error) {
     console.error('Database test failed:', error);

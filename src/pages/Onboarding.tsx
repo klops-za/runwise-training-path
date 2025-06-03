@@ -181,27 +181,46 @@ const Onboarding = () => {
       console.log('Existing profile check:', existingProfile);
       console.log('Select error:', selectError);
 
-      // Try the upsert operation
-      const { data, error } = await supabase
-        .from('runners')
-        .upsert(profileData, {
-          onConflict: 'id'
-        })
-        .select();
+      // Let's try a simple insert first instead of upsert to see if that works
+      let data, error;
+      
+      if (existingProfile) {
+        console.log('Profile exists, attempting update...');
+        ({ data, error } = await supabase
+          .from('runners')
+          .update(profileData)
+          .eq('id', user.id)
+          .select());
+      } else {
+        console.log('No existing profile, attempting insert...');
+        ({ data, error } = await supabase
+          .from('runners')
+          .insert(profileData)
+          .select());
+      }
 
       if (error) {
-        console.error('=== Supabase upsert error ===');
+        console.error('=== Supabase operation error ===');
         console.error('Error message:', error.message);
         console.error('Error details:', error.details);
         console.error('Error hint:', error.hint);
         console.error('Error code:', error.code);
         console.error('Full error object:', error);
         
-        toast({
-          title: "Error",
-          description: `Failed to save your profile: ${error.message}`,
-          variant: "destructive",
-        });
+        // More specific error handling
+        if (error.code === '42501') {
+          toast({
+            title: "Authentication Error",
+            description: "There's an issue with database permissions. Please try logging out and back in, or contact support if the issue persists.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: `Failed to save your profile: ${error.message}`,
+            variant: "destructive",
+          });
+        }
         return false;
       }
 
