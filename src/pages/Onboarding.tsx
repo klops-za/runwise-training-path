@@ -1,5 +1,4 @@
 
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { testDatabaseConnection } from '@/utils/debugDatabase';
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -111,6 +111,9 @@ const Onboarding = () => {
   };
 
   const saveRunnerProfile = async () => {
+    // Run database test first
+    await testDatabaseConnection();
+    
     if (!user) {
       console.error('No authenticated user found');
       toast({
@@ -122,13 +125,15 @@ const Onboarding = () => {
     }
 
     try {
-      console.log('Saving runner profile for user:', user.id);
+      console.log('=== DEBUG: Starting profile save ===');
       console.log('User object:', user);
+      console.log('User ID:', user.id);
       console.log('Form data:', formData);
       
       // Check if user is properly authenticated
-      const { data: session } = await supabase.auth.getSession();
+      const { data: session, error: sessionError } = await supabase.auth.getSession();
       console.log('Current session:', session);
+      console.log('Session error:', sessionError);
       
       if (!session.session) {
         console.error('No active session found');
@@ -139,6 +144,11 @@ const Onboarding = () => {
         });
         return false;
       }
+
+      // Check current user from auth
+      const { data: currentUser, error: userError } = await supabase.auth.getUser();
+      console.log('Current user from auth:', currentUser);
+      console.log('User error:', userError);
       
       const profileData = {
         id: user.id,
@@ -155,21 +165,34 @@ const Onboarding = () => {
         race_date: formData.race_date || null,
       };
 
-      console.log('Profile data to insert:', profileData);
+      console.log('=== Profile data to insert ===', profileData);
 
+      // First, let's try to check if a profile already exists
+      const { data: existingProfile, error: selectError } = await supabase
+        .from('runners')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      console.log('Existing profile check:', existingProfile);
+      console.log('Select error:', selectError);
+
+      // Try the upsert operation
       const { data, error } = await supabase
         .from('runners')
-        .upsert(profileData)
+        .upsert(profileData, {
+          onConflict: 'id'
+        })
         .select();
 
       if (error) {
-        console.error('Supabase error:', error);
-        console.error('Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+        console.error('=== Supabase upsert error ===');
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
+        console.error('Error hint:', error.hint);
+        console.error('Error code:', error.code);
+        console.error('Full error object:', error);
+        
         toast({
           title: "Error",
           description: `Failed to save your profile: ${error.message}`,
@@ -178,10 +201,10 @@ const Onboarding = () => {
         return false;
       }
 
-      console.log('Profile saved successfully:', data);
+      console.log('=== Profile saved successfully ===', data);
       return true;
     } catch (error) {
-      console.error('Unexpected error saving runner profile:', error);
+      console.error('=== Unexpected error saving runner profile ===', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
