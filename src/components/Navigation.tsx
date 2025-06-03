@@ -1,0 +1,112 @@
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Home, Calendar, BookOpen, User, Menu } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+const Navigation = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const navItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: Home },
+    { path: '/schedule', label: 'Schedule', icon: Calendar },
+    { path: '/knowledge', label: 'Knowledge', icon: BookOpen },
+    { path: '/onboarding', label: 'Profile', icon: User },
+  ];
+
+  const NavContent = () => (
+    <nav className="space-y-2">
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = location.pathname === item.path;
+        
+        return (
+          <Button
+            key={item.path}
+            variant={isActive ? "default" : "ghost"}
+            className={`w-full justify-start ${
+              isActive 
+                ? "bg-gradient-to-r from-blue-600 to-orange-500 text-white" 
+                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+            onClick={() => {
+              navigate(item.path);
+              setIsOpen(false);
+            }}
+          >
+            <Icon className="mr-2 h-4 w-4" />
+            {item.label}
+          </Button>
+        );
+      })}
+    </nav>
+  );
+
+  return (
+    <>
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-blue-100 sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full"></div>
+              <h1 
+                className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent cursor-pointer"
+                onClick={() => navigate('/dashboard')}
+              >
+                RunWise
+              </h1>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-1">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                
+                return (
+                  <Button
+                    key={item.path}
+                    variant={isActive ? "default" : "ghost"}
+                    className={`${
+                      isActive 
+                        ? "bg-gradient-to-r from-blue-600 to-orange-500 text-white" 
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    }`}
+                    onClick={() => navigate(item.path)}
+                  >
+                    <Icon className="mr-2 h-4 w-4" />
+                    {item.label}
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* Mobile Navigation */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="md:hidden">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64">
+                <div className="flex items-center space-x-2 mb-6">
+                  <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full"></div>
+                  <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
+                    RunWise
+                  </span>
+                </div>
+                <NavContent />
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </header>
+    </>
+  );
+};
+
+export default Navigation;
