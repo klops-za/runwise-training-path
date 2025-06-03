@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -110,6 +111,7 @@ const Onboarding = () => {
 
   const saveRunnerProfile = async () => {
     if (!user) {
+      console.error('No authenticated user found');
       toast({
         title: "Error",
         description: "You must be logged in to create a profile.",
@@ -120,31 +122,53 @@ const Onboarding = () => {
 
     try {
       console.log('Saving runner profile for user:', user.id);
+      console.log('User object:', user);
       console.log('Form data:', formData);
+      
+      // Check if user is properly authenticated
+      const { data: session } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      
+      if (!session.session) {
+        console.error('No active session found');
+        toast({
+          title: "Error",
+          description: "Your session has expired. Please log in again.",
+          variant: "destructive",
+        });
+        return false;
+      }
       
       const profileData = {
         id: user.id,
         email: user.email || '',
         age: formData.age ? parseInt(formData.age) : null,
-        gender: formData.gender ? (formData.gender as "Male" | "Female" | "Other") : null,
+        gender: formData.gender || null,
         height: formData.height ? parseFloat(formData.height) : null,
         weight: formData.weight ? parseFloat(formData.weight) : null,
-        experience_level: formData.experience_level ? (formData.experience_level as "Novice" | "Recreational" | "Competitive" | "Elite") : null,
+        experience_level: formData.experience_level || null,
         weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
         training_days: formData.training_days,
         preferred_unit: formData.preferred_unit as "mi" | "km",
-        race_goal: formData.race_goal ? (formData.race_goal as "5K" | "10K" | "Half Marathon" | "Marathon") : null,
+        race_goal: formData.race_goal || null,
         race_date: formData.race_date || null,
       };
 
       console.log('Profile data to insert:', profileData);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('runners')
-        .upsert(profileData);
+        .upsert(profileData)
+        .select();
 
       if (error) {
-        console.error('Error saving runner profile:', error);
+        console.error('Supabase error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         toast({
           title: "Error",
           description: `Failed to save your profile: ${error.message}`,
@@ -153,13 +177,13 @@ const Onboarding = () => {
         return false;
       }
 
-      console.log('Profile saved successfully');
+      console.log('Profile saved successfully:', data);
       return true;
     } catch (error) {
-      console.error('Error saving runner profile:', error);
+      console.error('Unexpected error saving runner profile:', error);
       toast({
         title: "Error",
-        description: "Failed to save your profile. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
       return false;
