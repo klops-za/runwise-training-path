@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,7 +9,6 @@ import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
-import { marked } from 'marked';
 
 // Define types for enriched data
 type Category = Tables<'categories'>;
@@ -118,15 +118,27 @@ const ArticlePage = () => {
   };
 
   const parseMarkdown = (content: string) => {
-    // Configure marked with simpler options
-    marked.setOptions({
-      breaks: true,
-      gfm: true,
-    });
-
-    // Use the default renderer but with custom CSS classes
-    const html = marked(content);
-    return html;
+    return content
+      // Headers (##)
+      .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold mt-8 mb-4 text-foreground">$1</h2>')
+      // Bold text (**text**)
+      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+      // Italic text (*text*)
+      .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em class="italic">$1</em>')
+      // Line breaks
+      .replace(/\n\n/g, '</p><p class="mb-4">')
+      .replace(/\n/g, '<br />')
+      // Wrap in paragraphs
+      .replace(/^(.+)$/gm, (match) => {
+        if (match.startsWith('<h2') || match.startsWith('<br')) {
+          return match;
+        }
+        return `<p class="mb-4">${match}</p>`;
+      })
+      // Clean up extra paragraph tags around headers
+      .replace(/<p class="mb-4">(<h2.*?<\/h2>)<\/p>/g, '$1')
+      // Clean up empty paragraphs
+      .replace(/<p class="mb-4"><\/p>/g, '');
   };
 
   if (isLoading) {
@@ -273,29 +285,15 @@ const ArticlePage = () => {
           </Card>
 
           {/* Article Content */}
-          <Card className="shadow-lg border-0">
-            <CardContent className="p-0">
-              <div className="p-8 md:p-12 lg:p-16">
-                <article className="max-w-none prose prose-lg prose-gray dark:prose-invert mx-auto">
-                  <div 
-                    className="prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-gray-100 
-                              prose-h1:text-3xl prose-h1:mb-8 prose-h1:mt-12 prose-h1:border-b prose-h1:border-gray-200 dark:prose-h1:border-gray-700 prose-h1:pb-4
-                              prose-h2:text-2xl prose-h2:mb-6 prose-h2:mt-10
-                              prose-h3:text-xl prose-h3:mb-4 prose-h3:mt-8
-                              prose-p:mb-6 prose-p:leading-relaxed prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:text-lg
-                              prose-ul:mb-6 prose-ul:space-y-2 prose-li:text-lg prose-li:leading-relaxed
-                              prose-ol:mb-6 prose-ol:space-y-2
-                              prose-strong:font-semibold prose-strong:text-gray-900 dark:prose-strong:text-gray-100
-                              prose-em:italic prose-em:text-gray-800 dark:prose-em:text-gray-200
-                              prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:text-gray-800 dark:prose-code:text-gray-200 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:font-mono
-                              prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:rounded-lg prose-pre:p-4 prose-pre:mb-6 prose-pre:overflow-x-auto
-                              prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:mb-6 prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400 prose-blockquote:bg-gray-50 dark:prose-blockquote:bg-gray-800 prose-blockquote:py-4 prose-blockquote:rounded-r-lg
-                              prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:hover:text-blue-800 dark:prose-a:hover:text-blue-300 prose-a:underline prose-a:decoration-2 prose-a:underline-offset-2 prose-a:transition-colors"
-                    dangerouslySetInnerHTML={{ 
-                      __html: parseMarkdown(article.content)
-                    }} 
-                  />
-                </article>
+          <Card>
+            <CardContent className="p-8">
+              <div className="prose prose-lg max-w-none dark:prose-invert">
+                <div 
+                  className="leading-relaxed text-foreground [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mt-8 [&>h2]:mb-4 [&>h2]:text-foreground [&>p]:mb-4 [&>p]:text-foreground [&>strong]:font-semibold [&>em]:italic"
+                  dangerouslySetInnerHTML={{ 
+                    __html: parseMarkdown(article.content)
+                  }} 
+                />
               </div>
             </CardContent>
           </Card>
@@ -312,18 +310,6 @@ const ArticlePage = () => {
           </div>
         </div>
       </div>
-
-      <style>{`
-        .prose h1:first-child {
-          margin-top: 0;
-        }
-        .prose p:first-child {
-          margin-top: 0;
-        }
-        .prose > *:last-child {
-          margin-bottom: 0;
-        }
-      `}</style>
     </div>
   );
 };
