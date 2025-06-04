@@ -1,7 +1,7 @@
 
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Clock, User, Tag, Bookmark, BookmarkCheck } from 'lucide-react';
@@ -14,11 +14,13 @@ const ArticlePage = () => {
   const navigate = useNavigate();
   const [isBookmarked, setIsBookmarked] = useState(false);
 
-  const { data: article, isLoading } = useQuery({
+  const { data: article, isLoading, error } = useQuery({
     queryKey: ['article', slug],
     queryFn: async () => {
+      if (!slug) throw new Error('No slug provided');
+      
       const { data, error } = await supabase
-        .from('articles')
+        .from('articles' as any)
         .select(`
           *,
           categories (name, color_scheme),
@@ -46,6 +48,14 @@ const ArticlePage = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
@@ -67,13 +77,16 @@ const ArticlePage = () => {
     );
   }
 
-  if (!article) {
+  if (error || !article) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-2xl font-bold mb-4">Article Not Found</h1>
+            <p className="text-muted-foreground mb-6">
+              {error ? 'There was an error loading the article.' : 'The article you requested could not be found.'}
+            </p>
             <Button onClick={() => navigate('/knowledge')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Knowledge Hub
@@ -83,6 +96,10 @@ const ArticlePage = () => {
       </div>
     );
   }
+
+  const category = article.categories;
+  const author = article.authors;
+  const tags = article.article_tags || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
@@ -103,82 +120,108 @@ const ArticlePage = () => {
 
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-3">
-                <Badge className={`${article.categories?.color_scheme || 'bg-blue-100'} text-blue-800`}>
-                  {article.categories?.name}
-                </Badge>
-                <Badge className={getDifficultyColor(article.difficulty || 'all-levels')}>
-                  {article.difficulty || 'All Levels'}
-                </Badge>
+                {category && (
+                  <Badge className={`bg-gradient-to-r ${category.color_scheme} text-gray-800 border-0`}>
+                    {category.name}
+                  </Badge>
+                )}
+                {article.difficulty && (
+                  <Badge className={getDifficultyColor(article.difficulty)}>
+                    {article.difficulty}
+                  </Badge>
+                )}
               </div>
 
-              <h1 className="text-4xl font-bold text-foreground">{article.title}</h1>
-              
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight">
+                {article.title}
+              </h1>
+
               {article.excerpt && (
-                <p className="text-xl text-muted-foreground">{article.excerpt}</p>
-              )}
-
-              <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-                {article.authors && (
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-1" />
-                    {article.authors.name}
-                  </div>
-                )}
-                {article.read_time && (
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
-                    {article.read_time}
-                  </div>
-                )}
-                {article.published_at && (
-                  <span>
-                    {new Date(article.published_at).toLocaleDateString()}
-                  </span>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsBookmarked(!isBookmarked)}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  {isBookmarked ? (
-                    <BookmarkCheck className="h-4 w-4 mr-1" />
-                  ) : (
-                    <Bookmark className="h-4 w-4 mr-1" />
-                  )}
-                  {isBookmarked ? 'Bookmarked' : 'Bookmark'}
-                </Button>
-              </div>
-
-              {article.article_tags && article.article_tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {article.article_tags.map((tagRelation: any, index: number) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      <Tag className="h-3 w-3 mr-1" />
-                      {tagRelation.tags.name}
-                    </Badge>
-                  ))}
-                </div>
+                <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl">
+                  {article.excerpt}
+                </p>
               )}
             </div>
           </div>
 
-          {/* Article Content */}
-          <Card>
-            <CardContent className="p-8">
-              <div 
-                className="prose prose-lg dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: article.content.replace(/\n/g, '<br />') }}
-              />
+          {/* Meta Information */}
+          <Card className="mb-8">
+            <CardContent className="p-6">
+              <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+                {author && (
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span>By {author.name}</span>
+                  </div>
+                )}
+                
+                {article.read_time && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>{article.read_time}</span>
+                  </div>
+                )}
+
+                {article.published_at && (
+                  <div className="flex items-center gap-2">
+                    <span>Published {formatDate(article.published_at)}</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsBookmarked(!isBookmarked)}
+                    className="h-8 px-2"
+                  >
+                    {isBookmarked ? (
+                      <BookmarkCheck className="h-4 w-4 text-blue-600" />
+                    ) : (
+                      <Bookmark className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {tags.length > 0 && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                    {tags.map((tagRelation: any, index: number) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {tagRelation.tags.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Navigation */}
-          <div className="mt-8 flex justify-center">
-            <Button onClick={() => navigate('/knowledge')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Knowledge Hub
-            </Button>
+          {/* Article Content */}
+          <Card>
+            <CardContent className="p-8">
+              <div className="prose prose-lg max-w-none dark:prose-invert">
+                <div 
+                  className="leading-relaxed"
+                  dangerouslySetInnerHTML={{ 
+                    __html: article.content.replace(/\n/g, '<br />') 
+                  }} 
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Related Articles Section */}
+          <div className="mt-12">
+            <h3 className="text-2xl font-bold mb-6">Continue Reading</h3>
+            <div className="text-center">
+              <Button onClick={() => navigate('/knowledge')} size="lg">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Browse All Articles
+              </Button>
+            </div>
           </div>
         </div>
       </div>
