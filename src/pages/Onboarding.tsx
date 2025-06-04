@@ -512,7 +512,6 @@ const Onboarding = () => {
                           <SelectItem value="5K">5K</SelectItem>
                           <SelectItem value="10K">10K</SelectItem>
                           <SelectItem value="Half Marathon">Half Marathon</SelectItem>
-                          <SelectItem value="Marathon">Marathon</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

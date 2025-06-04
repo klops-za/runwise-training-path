@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -448,7 +449,6 @@ const Profile = () => {
                         <SelectItem value="5K">5K</SelectItem>
                         <SelectItem value="10K">10K</SelectItem>
                         <SelectItem value="Half Marathon">Half Marathon</SelectItem>
-                        <SelectItem value="Marathon">Marathon</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
