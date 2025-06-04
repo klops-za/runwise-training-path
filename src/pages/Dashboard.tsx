@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -193,6 +192,69 @@ const Dashboard = () => {
     }
   };
 
+  const handlePlanGenerated = () => {
+    // Refetch data after plan generation
+    const fetchData = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch runner data
+        const { data: runner, error: runnerError } = await supabase
+          .from('runners')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (runnerError) {
+          console.error('Error fetching runner data:', runnerError);
+          return;
+        }
+
+        setRunnerData(runner);
+
+        // Fetch existing training plan
+        const { data: plan, error: planError } = await supabase
+          .from('training_plans')
+          .select('*')
+          .eq('runner_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (planError) {
+          console.error('Error fetching training plan:', planError);
+        } else {
+          setTrainingPlan(plan);
+          
+          // If we have a training plan, fetch current week workouts
+          if (plan) {
+            const weeksElapsed = plan.start_date 
+              ? Math.floor((new Date().getTime() - new Date(plan.start_date).getTime()) / (1000 * 3600 * 24 * 7))
+              : 0;
+            const currentWeek = Math.min(Math.max(weeksElapsed + 1, 1), 16);
+            
+            const { data: workouts, error: workoutsError } = await supabase
+              .from('workouts')
+              .select('*')
+              .eq('plan_id', plan.id)
+              .eq('week_number', currentWeek)
+              .order('date', { ascending: true });
+
+            if (workoutsError) {
+              console.error('Error fetching workouts:', workoutsError);
+            } else {
+              setCurrentWeekWorkouts(workouts || []);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Unexpected error:', error);
+      }
+    };
+
+    fetchData();
+  };
+
   const convertDistance = (distanceInMiles: number) => {
     if (!runnerData?.preferred_unit || runnerData.preferred_unit === 'mi') {
       return `${distanceInMiles.toFixed(1)} miles`;
@@ -265,10 +327,10 @@ const Dashboard = () => {
           daysUntilRace={daysUntilRace}
         />
 
-        {!trainingPlan && (
+        {!trainingPlan && runnerData && (
           <TrainingPlanGeneration 
-            generatingPlan={generatingPlan}
-            onGenerateTrainingPlan={generateTrainingPlan}
+            runner={runnerData}
+            onPlanGenerated={handlePlanGenerated}
           />
         )}
 

@@ -6,6 +6,7 @@ type WorkoutType = Database['public']['Enums']['workout_type'];
 type ExperienceLevel = Database['public']['Enums']['experience_level_type'];
 type PhaseType = Database['public']['Enums']['phase_type'];
 type DayOfWeekType = Database['public']['Enums']['day_of_week_type'];
+type IntensityType = Database['public']['Enums']['intensity_type'];
 
 interface WeeklyTemplate {
   day_of_week: DayOfWeekType;
@@ -150,13 +151,13 @@ const regenerateWorkoutsWithTemplates = async (
           plan_id: planId,
           date: workoutDate.toISOString().split('T')[0],
           type: template.workout_type,
-          intensity: getWorkoutIntensity(template.workout_type),
+          intensity: getWorkoutIntensity(template.workout_type) as IntensityType,
           description: getWorkoutDescription(template.workout_type, structure?.structure_json),
           duration: getWorkoutDuration(template.workout_type, weekNum, structure?.structure_json),
           distance_target: getWorkoutDistance(template.workout_type, weekNum, structure?.structure_json),
           pace_target: getWorkoutPace(template.workout_type),
           week_number: weekNum,
-          status: workoutDate < new Date() ? 'Completed' : 'Pending',
+          status: (workoutDate < new Date() ? 'Completed' : 'Pending') as Database['public']['Enums']['workout_status_type'],
           phase: currentPhase,
           structure_id: structure?.id || null,
           details_json: structure?.structure_json || null
@@ -189,8 +190,8 @@ const getDayOffset = (dayOfWeek: DayOfWeekType): number => {
   return dayMap[dayOfWeek] || 0;
 };
 
-const getWorkoutIntensity = (workoutType: WorkoutType): string => {
-  const intensityMap: Record<WorkoutType, string> = {
+const getWorkoutIntensity = (workoutType: WorkoutType): IntensityType => {
+  const intensityMap: Record<WorkoutType, IntensityType> = {
     'Easy': 'Low',
     'Recovery': 'Low',
     'Long': 'High',
