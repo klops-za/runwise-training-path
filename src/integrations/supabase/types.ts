@@ -538,19 +538,61 @@ export type Database = {
         }
         Relationships: []
       }
+      workout_structures: {
+        Row: {
+          created_at: string
+          experience_level: Database["public"]["Enums"]["experience_level_type"]
+          id: string
+          max_distance: number | null
+          min_distance: number | null
+          min_duration: number | null
+          phase: Database["public"]["Enums"]["phase_type"]
+          structure_json: Json
+          updated_at: string
+          workout_type: Database["public"]["Enums"]["workout_type"]
+        }
+        Insert: {
+          created_at?: string
+          experience_level: Database["public"]["Enums"]["experience_level_type"]
+          id?: string
+          max_distance?: number | null
+          min_distance?: number | null
+          min_duration?: number | null
+          phase: Database["public"]["Enums"]["phase_type"]
+          structure_json: Json
+          updated_at?: string
+          workout_type: Database["public"]["Enums"]["workout_type"]
+        }
+        Update: {
+          created_at?: string
+          experience_level?: Database["public"]["Enums"]["experience_level_type"]
+          id?: string
+          max_distance?: number | null
+          min_distance?: number | null
+          min_duration?: number | null
+          phase?: Database["public"]["Enums"]["phase_type"]
+          structure_json?: Json
+          updated_at?: string
+          workout_type?: Database["public"]["Enums"]["workout_type"]
+        }
+        Relationships: []
+      }
       workouts: {
         Row: {
           created_at: string
           date: string | null
           description: string | null
+          details_json: Json | null
           distance_target: number | null
           duration: number | null
           id: string
           intensity: Database["public"]["Enums"]["intensity_type"] | null
           notes: string | null
           pace_target: string | null
+          phase: Database["public"]["Enums"]["phase_type"] | null
           plan_id: string
           status: Database["public"]["Enums"]["workout_status_type"] | null
+          structure_id: string | null
           type: Database["public"]["Enums"]["workout_type"] | null
           updated_at: string
           week_number: number | null
@@ -559,14 +601,17 @@ export type Database = {
           created_at?: string
           date?: string | null
           description?: string | null
+          details_json?: Json | null
           distance_target?: number | null
           duration?: number | null
           id?: string
           intensity?: Database["public"]["Enums"]["intensity_type"] | null
           notes?: string | null
           pace_target?: string | null
+          phase?: Database["public"]["Enums"]["phase_type"] | null
           plan_id: string
           status?: Database["public"]["Enums"]["workout_status_type"] | null
+          structure_id?: string | null
           type?: Database["public"]["Enums"]["workout_type"] | null
           updated_at?: string
           week_number?: number | null
@@ -575,14 +620,17 @@ export type Database = {
           created_at?: string
           date?: string | null
           description?: string | null
+          details_json?: Json | null
           distance_target?: number | null
           duration?: number | null
           id?: string
           intensity?: Database["public"]["Enums"]["intensity_type"] | null
           notes?: string | null
           pace_target?: string | null
+          phase?: Database["public"]["Enums"]["phase_type"] | null
           plan_id?: string
           status?: Database["public"]["Enums"]["workout_status_type"] | null
+          structure_id?: string | null
           type?: Database["public"]["Enums"]["workout_type"] | null
           updated_at?: string
           week_number?: number | null
@@ -593,6 +641,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "training_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workouts_structure_id_fkey"
+            columns: ["structure_id"]
+            isOneToOne: false
+            referencedRelation: "workout_structures"
             referencedColumns: ["id"]
           },
         ]
