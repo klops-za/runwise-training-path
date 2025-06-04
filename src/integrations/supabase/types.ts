@@ -201,6 +201,45 @@ export type Database = {
         }
         Relationships: []
       }
+      phase_durations: {
+        Row: {
+          base_weeks: number
+          build_weeks: number
+          created_at: string
+          experience_level: Database["public"]["Enums"]["experience_level_type"]
+          id: string
+          peak_weeks: number
+          race_type: Database["public"]["Enums"]["race_type"]
+          taper_weeks: number
+          total_weeks: number
+          updated_at: string
+        }
+        Insert: {
+          base_weeks: number
+          build_weeks: number
+          created_at?: string
+          experience_level: Database["public"]["Enums"]["experience_level_type"]
+          id?: string
+          peak_weeks: number
+          race_type: Database["public"]["Enums"]["race_type"]
+          taper_weeks: number
+          total_weeks: number
+          updated_at?: string
+        }
+        Update: {
+          base_weeks?: number
+          build_weeks?: number
+          created_at?: string
+          experience_level?: Database["public"]["Enums"]["experience_level_type"]
+          id?: string
+          peak_weeks?: number
+          race_type?: Database["public"]["Enums"]["race_type"]
+          taper_weeks?: number
+          total_weeks?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reading_progress: {
         Row: {
           article_id: string | null
@@ -442,6 +481,63 @@ export type Database = {
           },
         ]
       }
+      weekly_schedule_templates: {
+        Row: {
+          created_at: string
+          day_of_week: Database["public"]["Enums"]["day_of_week_type"]
+          id: string
+          phase: Database["public"]["Enums"]["phase_type"]
+          training_days: number
+          updated_at: string
+          workout_priority: number
+          workout_type: Database["public"]["Enums"]["workout_type"]
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: Database["public"]["Enums"]["day_of_week_type"]
+          id?: string
+          phase: Database["public"]["Enums"]["phase_type"]
+          training_days: number
+          updated_at?: string
+          workout_priority: number
+          workout_type: Database["public"]["Enums"]["workout_type"]
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: Database["public"]["Enums"]["day_of_week_type"]
+          id?: string
+          phase?: Database["public"]["Enums"]["phase_type"]
+          training_days?: number
+          updated_at?: string
+          workout_priority?: number
+          workout_type?: Database["public"]["Enums"]["workout_type"]
+        }
+        Relationships: []
+      }
+      workout_intensity_rules: {
+        Row: {
+          created_at: string
+          id: string
+          is_hard: boolean
+          updated_at: string
+          workout_type: Database["public"]["Enums"]["workout_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_hard?: boolean
+          updated_at?: string
+          workout_type: Database["public"]["Enums"]["workout_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_hard?: boolean
+          updated_at?: string
+          workout_type?: Database["public"]["Enums"]["workout_type"]
+        }
+        Relationships: []
+      }
       workouts: {
         Row: {
           created_at: string
@@ -516,7 +612,17 @@ export type Database = {
         Returns: number
       }
       generate_training_plan: {
-        Args: { runner_uuid: string }
+        Args:
+          | { runner_uuid: string }
+          | {
+              runner_uuid: string
+              race_type_param: Database["public"]["Enums"]["race_type"]
+              experience_level_param: Database["public"]["Enums"]["experience_level_type"]
+              fitness_score_param: number
+              training_days_param: number
+              race_date_param: string
+              training_start_date_param: string
+            }
         Returns: string
       }
       get_current_training_week: {
@@ -529,9 +635,11 @@ export type Database = {
       }
     }
     Enums: {
+      day_of_week_type: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun"
       experience_level_type: "Novice" | "Recreational" | "Competitive" | "Elite"
       gender_type: "Male" | "Female" | "Other"
       intensity_type: "Low" | "Moderate" | "High"
+      phase_type: "Base" | "Build" | "Peak" | "Taper"
       race_type: "5K" | "10K" | "Half Marathon" | "Marathon"
       tier_type: "Free" | "Basic" | "Premium"
       unit_type: "km" | "mi"
@@ -659,9 +767,11 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      day_of_week_type: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
       experience_level_type: ["Novice", "Recreational", "Competitive", "Elite"],
       gender_type: ["Male", "Female", "Other"],
       intensity_type: ["Low", "Moderate", "High"],
+      phase_type: ["Base", "Build", "Peak", "Taper"],
       race_type: ["5K", "10K", "Half Marathon", "Marathon"],
       tier_type: ["Free", "Basic", "Premium"],
       unit_type: ["km", "mi"],

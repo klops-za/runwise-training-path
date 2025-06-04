@@ -107,19 +107,37 @@ const Dashboard = () => {
   const generateTrainingPlan = async () => {
     if (!user || !runnerData) return;
 
+    // Validate required data
+    if (!runnerData.race_goal || !runnerData.experience_level || !runnerData.fitness_score || 
+        !runnerData.training_days || !runnerData.race_date || !runnerData.training_start_date) {
+      toast({
+        title: "Missing Information",
+        description: "Please complete your profile with race goal, experience level, fitness score, training days, race date, and training start date.",
+        variant: "destructive",
+      });
+      navigate('/profile');
+      return;
+    }
+
     setGeneratingPlan(true);
     try {
       console.log('Generating training plan for user:', user.id);
       
       const { data, error } = await supabase.rpc('generate_training_plan', {
-        runner_uuid: user.id
+        runner_uuid: user.id,
+        race_type_param: runnerData.race_goal,
+        experience_level_param: runnerData.experience_level,
+        fitness_score_param: runnerData.fitness_score,
+        training_days_param: runnerData.training_days,
+        race_date_param: runnerData.race_date,
+        training_start_date_param: runnerData.training_start_date
       });
 
       if (error) {
         console.error('Error generating training plan:', error);
         toast({
           title: "Error",
-          description: "Failed to generate training plan. Please try again.",
+          description: `Failed to generate training plan: ${error.message}`,
           variant: "destructive",
         });
         return;
@@ -138,6 +156,25 @@ const Dashboard = () => {
         console.error('Error fetching new training plan:', fetchError);
       } else {
         setTrainingPlan(newPlan);
+        
+        // Fetch current week workouts for the new plan
+        const weeksElapsed = newPlan.start_date 
+          ? Math.floor((new Date().getTime() - new Date(newPlan.start_date).getTime()) / (1000 * 3600 * 24 * 7))
+          : 0;
+        const currentWeek = Math.min(Math.max(weeksElapsed + 1, 1), 16);
+        
+        const { data: workouts, error: workoutsError } = await supabase
+          .from('workouts')
+          .select('*')
+          .eq('plan_id', newPlan.id)
+          .eq('week_number', currentWeek)
+          .order('date', { ascending: true });
+
+        if (workoutsError) {
+          console.error('Error fetching workouts:', workoutsError);
+        } else {
+          setCurrentWeekWorkouts(workouts || []);
+        }
       }
 
       toast({
