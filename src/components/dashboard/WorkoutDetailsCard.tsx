@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Target, Zap } from 'lucide-react';
@@ -24,14 +25,46 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
 
   const formatPaceDisplay = (pace?: string) => {
     if (!pace) return 'Easy';
-    // Ensure we display standardized pace names
     return Object.values(PACE_ZONES).includes(pace as any) ? pace : getStandardPace(workout.type || 'Easy');
   };
 
   const formatEffortDisplay = (effort?: string) => {
     if (!effort) return 'Moderate';
-    // Ensure we display standardized effort names
     return Object.values(EFFORT_LEVELS).includes(effort as any) ? effort : getStandardEffort(workout.type || 'Easy');
+  };
+
+  const getStructuredDescription = () => {
+    if (!workout.details_json) return workout.description;
+    
+    try {
+      const detailsData = workout.details_json;
+      
+      if (!isValidWorkoutStructure(detailsData)) {
+        return workout.description;
+      }
+      
+      const structure = detailsData as WorkoutStructureJson;
+      const mainSegment = structure.main[0];
+      
+      // Format structured descriptions for interval and tempo workouts
+      if (workout.type === 'Interval' && mainSegment?.reps && mainSegment?.distance) {
+        return `${mainSegment.reps}x${(mainSegment.distance * 1609).toFixed(0)}m @ ${formatPaceDisplay(mainSegment.pace)} pace with ${mainSegment.rest || 90}s rest`;
+      }
+      
+      if (workout.type === 'Tempo' && mainSegment?.distance) {
+        return `${convertDistance(mainSegment.distance)} @ ${formatPaceDisplay(mainSegment.pace)} pace`;
+      }
+      
+      if (workout.type === 'Hill' && mainSegment?.reps && mainSegment?.duration) {
+        return `${mainSegment.reps}x${mainSegment.duration}s hill repeats @ ${formatEffortDisplay(mainSegment.effort)} effort with ${mainSegment.rest || 90}s recovery`;
+      }
+      
+      // For other workout types, use the original description
+      return workout.description;
+    } catch (error) {
+      console.error('Error parsing workout structure:', error);
+      return workout.description;
+    }
   };
 
   const renderStructuredWorkout = () => {
@@ -120,7 +153,7 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
       </CardHeader>
       
       <CardContent>
-        <p className="text-card-foreground mb-3">{workout.description}</p>
+        <p className="text-card-foreground mb-3">{getStructuredDescription()}</p>
         
         <div className="flex items-center space-x-6 text-sm text-muted-foreground mb-3">
           {workout.duration && (

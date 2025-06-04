@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Play, Plus, RefreshCw } from 'lucide-react';
 import WorkoutDetailsCard from './WorkoutDetailsCard';
 import type { Database } from '@/integrations/supabase/types';
+import { isValidWorkoutStructure, type WorkoutStructureJson, PACE_ZONES } from '@/utils/workoutStructures';
 
 type TrainingPlan = Database['public']['Tables']['training_plans']['Row'];
 type Workout = Database['public']['Tables']['workouts']['Row'];
@@ -25,6 +26,42 @@ const TrainingStatusCard = ({
   onGenerateTrainingPlan,
   convertDistance 
 }: TrainingStatusCardProps) => {
+  const getWorkoutDisplayDescription = (workout: Workout) => {
+    if (!workout.details_json) {
+      return workout.description || 'No description available';
+    }
+    
+    try {
+      const detailsData = workout.details_json;
+      
+      if (!isValidWorkoutStructure(detailsData)) {
+        return workout.description || 'No description available';
+      }
+      
+      const structure = detailsData as WorkoutStructureJson;
+      const mainSegment = structure.main[0];
+      
+      // Format structured descriptions for interval and tempo workouts
+      if (workout.type === 'Interval' && mainSegment?.reps && mainSegment?.distance) {
+        return `${mainSegment.reps}x${(mainSegment.distance * 1609).toFixed(0)}m @ ${mainSegment.pace || 'Interval'} pace`;
+      }
+      
+      if (workout.type === 'Tempo' && mainSegment?.distance) {
+        return `${convertDistance(mainSegment.distance)} @ ${mainSegment.pace || 'Tempo'} pace`;
+      }
+      
+      if (workout.type === 'Hill' && mainSegment?.reps && mainSegment?.duration) {
+        return `${mainSegment.reps}x${mainSegment.duration}s hill repeats`;
+      }
+      
+      // For other workout types, use the original description
+      return workout.description || 'No description available';
+    } catch (error) {
+      console.error('Error parsing workout structure:', error);
+      return workout.description || 'No description available';
+    }
+  };
+
   if (!trainingPlan) {
     return (
       <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30">
@@ -100,7 +137,7 @@ const TrainingStatusCard = ({
                 </div>
                 
                 <p className="text-sm text-card-foreground mb-2">
-                  {workout.description || 'No description available'}
+                  {getWorkoutDisplayDescription(workout)}
                 </p>
                 
                 <div className="flex items-center space-x-4 text-xs text-muted-foreground">
