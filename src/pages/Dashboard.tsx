@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, Target, TrendingUp, Settings, RefreshCw, User, Plus } from 'lucide-react';
+import { Calendar, Target, TrendingUp, Settings, RefreshCw, User, Plus, Timer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
+import { calculateTrainingPaces, formatPace } from '@/utils/paceCalculations';
 import type { Database } from '@/integrations/supabase/types';
 
 type RunnerData = Database['public']['Tables']['runners']['Row'];
@@ -21,6 +22,11 @@ const Dashboard = () => {
   const [generatingPlan, setGeneratingPlan] = useState(false);
   const [runnerData, setRunnerData] = useState<RunnerData | null>(null);
   const [trainingPlan, setTrainingPlan] = useState<TrainingPlan | null>(null);
+
+  // Calculate training paces based on fitness score
+  const trainingPaces = runnerData?.fitness_score 
+    ? calculateTrainingPaces(runnerData.fitness_score)
+    : { intervalPace: null, tempoPace: null, easyPace: null };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -172,6 +178,8 @@ const Dashboard = () => {
     ? `${runnerData.first_name}${runnerData.last_name ? ' ' + runnerData.last_name : ''}`
     : 'Runner';
 
+  const paceUnit = runnerData.preferred_unit === 'mi' ? 'mile' : 'km';
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -294,7 +302,7 @@ const Dashboard = () => {
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Training Plan Status */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -352,6 +360,43 @@ const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Training Paces Card */}
+            {runnerData.fitness_score && (
+              <Card className="border-green-100 dark:border-green-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-green-900 dark:text-green-100">
+                    <Timer className="mr-2 h-5 w-5 text-green-600 dark:text-green-400" />
+                    Your Training Paces
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                      <div className="text-sm text-muted-foreground mb-1">Interval Pace</div>
+                      <div className="text-lg font-semibold text-foreground">
+                        {formatPace(trainingPaces.intervalPace, paceUnit)}
+                      </div>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                      <div className="text-sm text-muted-foreground mb-1">Tempo Pace</div>
+                      <div className="text-lg font-semibold text-foreground">
+                        {formatPace(trainingPaces.tempoPace, paceUnit)}
+                      </div>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                      <div className="text-sm text-muted-foreground mb-1">Easy Pace</div>
+                      <div className="text-lg font-semibold text-foreground">
+                        {formatPace(trainingPaces.easyPace, paceUnit)}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-3 text-center">
+                    Calculated based on your fitness score of {runnerData.fitness_score}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Quick Actions */}
