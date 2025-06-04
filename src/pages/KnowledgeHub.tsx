@@ -10,6 +10,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Clock, User, ChevronRight, Star } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
+
+// Define types for enriched data
+type Category = Tables<'categories'>;
+type Author = Tables<'authors'>;
+type Article = Tables<'articles'>;
+
+interface EnrichedArticle extends Article {
+  categories: Category | null;
+  authors: Author | null;
+}
 
 const KnowledgeHub = () => {
   const navigate = useNavigate();
@@ -19,9 +30,9 @@ const KnowledgeHub = () => {
   // Fetch categories
   const { data: categories } = useQuery({
     queryKey: ['categories'],
-    queryFn: async () => {
+    queryFn: async (): Promise<Category[]> => {
       const { data, error } = await supabase
-        .from('categories' as any)
+        .from('categories')
         .select('*')
         .order('name');
       if (error) throw error;
@@ -32,9 +43,9 @@ const KnowledgeHub = () => {
   // Fetch articles with separate queries for related data
   const { data: articles, isLoading } = useQuery({
     queryKey: ['articles', selectedCategory, searchTerm],
-    queryFn: async () => {
+    queryFn: async (): Promise<EnrichedArticle[]> => {
       let query = supabase
-        .from('articles' as any)
+        .from('articles')
         .select('*')
         .eq('published', true)
         .order('published_at', { ascending: false });
@@ -48,17 +59,17 @@ const KnowledgeHub = () => {
 
       // Get all categories and authors separately
       const { data: categoriesData } = await supabase
-        .from('categories' as any)
+        .from('categories')
         .select('*');
 
       const { data: authorsData } = await supabase
-        .from('authors' as any)
+        .from('authors')
         .select('*');
 
       // Combine the data
-      const enrichedArticles = (articlesData || []).map((article: any) => {
-        const category = categoriesData?.find((cat: any) => cat.id === article.category_id);
-        const author = authorsData?.find((auth: any) => auth.id === article.author_id);
+      const enrichedArticles: EnrichedArticle[] = (articlesData || []).map((article) => {
+        const category = categoriesData?.find((cat) => cat.id === article.category_id) || null;
+        const author = authorsData?.find((auth) => auth.id === article.author_id) || null;
         
         return {
           ...article,
@@ -69,7 +80,7 @@ const KnowledgeHub = () => {
 
       // Filter by category if selected
       if (selectedCategory !== 'all') {
-        return enrichedArticles.filter((article: any) => 
+        return enrichedArticles.filter((article) => 
           article.categories?.name === selectedCategory
         );
       }
@@ -81,9 +92,9 @@ const KnowledgeHub = () => {
   // Fetch featured articles
   const { data: featuredArticles } = useQuery({
     queryKey: ['featured-articles'],
-    queryFn: async () => {
+    queryFn: async (): Promise<EnrichedArticle[]> => {
       const { data: articlesData, error } = await supabase
-        .from('articles' as any)
+        .from('articles')
         .select('*')
         .eq('published', true)
         .eq('featured', true)
@@ -93,17 +104,17 @@ const KnowledgeHub = () => {
 
       // Get categories and authors for featured articles
       const { data: categoriesData } = await supabase
-        .from('categories' as any)
+        .from('categories')
         .select('*');
 
       const { data: authorsData } = await supabase
-        .from('authors' as any)
+        .from('authors')
         .select('*');
 
       // Combine the data
-      const enrichedArticles = (articlesData || []).map((article: any) => {
-        const category = categoriesData?.find((cat: any) => cat.id === article.category_id);
-        const author = authorsData?.find((auth: any) => auth.id === article.author_id);
+      const enrichedArticles: EnrichedArticle[] = (articlesData || []).map((article) => {
+        const category = categoriesData?.find((cat) => cat.id === article.category_id) || null;
+        const author = authorsData?.find((auth) => auth.id === article.author_id) || null;
         
         return {
           ...article,
@@ -133,7 +144,7 @@ const KnowledgeHub = () => {
     });
   };
 
-  const ArticleCard = ({ article, featured = false }: { article: any; featured?: boolean }) => (
+  const ArticleCard = ({ article, featured = false }: { article: EnrichedArticle; featured?: boolean }) => (
     <Card className={`cursor-pointer hover:shadow-lg transition-shadow ${featured ? 'border-2 border-orange-200 dark:border-orange-800' : ''}`}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
@@ -223,7 +234,7 @@ const KnowledgeHub = () => {
           <div className="mb-12">
             <h2 className="text-2xl font-bold mb-6">Featured Articles</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredArticles.map((article: any) => (
+              {featuredArticles.map((article) => (
                 <div key={article.id} onClick={() => navigate(`/knowledge/${article.slug}`)}>
                   <ArticleCard article={article} featured />
                 </div>
@@ -236,7 +247,7 @@ const KnowledgeHub = () => {
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
           <TabsList className="grid w-full max-w-md mx-auto mb-8" style={{ gridTemplateColumns: `repeat(${(categories?.length || 0) + 1}, 1fr)` }}>
             <TabsTrigger value="all">All</TabsTrigger>
-            {categories?.map((category: any) => (
+            {categories?.map((category) => (
               <TabsTrigger key={category.id} value={category.name}>
                 {category.name}
               </TabsTrigger>
@@ -263,7 +274,7 @@ const KnowledgeHub = () => {
               </div>
             ) : articles && articles.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articles.map((article: any) => (
+                {articles.map((article) => (
                   <div key={article.id} onClick={() => navigate(`/knowledge/${article.slug}`)}>
                     <ArticleCard article={article} />
                   </div>

@@ -8,6 +8,24 @@ import { ArrowLeft, Clock, User, Tag, Bookmark, BookmarkCheck } from 'lucide-rea
 import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
+import type { Tables } from '@/integrations/supabase/types';
+
+// Define types for enriched data
+type Category = Tables<'categories'>;
+type Author = Tables<'authors'>;
+type Article = Tables<'articles'>;
+type ArticleTag = Tables<'article_tags'>;
+type Tag = Tables<'tags'>;
+
+interface ArticleTagWithTag extends ArticleTag {
+  tags: Tag | null;
+}
+
+interface EnrichedArticle extends Article {
+  categories: Category | null;
+  authors: Author | null;
+  article_tags: ArticleTagWithTag[];
+}
 
 const ArticlePage = () => {
   const { slug } = useParams();
@@ -16,7 +34,7 @@ const ArticlePage = () => {
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ['article', slug],
-    queryFn: async () => {
+    queryFn: async (): Promise<EnrichedArticle | null> => {
       if (!slug) throw new Error('No slug provided');
       
       // Get the article first
@@ -31,7 +49,7 @@ const ArticlePage = () => {
       if (!articleData) return null;
 
       // Get category separately if it exists
-      let category = null;
+      let category: Category | null = null;
       if (articleData.category_id) {
         const { data: categoryData } = await supabase
           .from('categories')
@@ -42,7 +60,7 @@ const ArticlePage = () => {
       }
 
       // Get author separately if it exists
-      let author = null;
+      let author: Author | null = null;
       if (articleData.author_id) {
         const { data: authorData } = await supabase
           .from('authors')
@@ -56,17 +74,27 @@ const ArticlePage = () => {
       const { data: tagData } = await supabase
         .from('article_tags')
         .select(`
+          article_id,
+          tag_id,
           tags (
-            name
+            id,
+            name,
+            created_at
           )
         `)
         .eq('article_id', articleData.id);
+
+      const articleTags: ArticleTagWithTag[] = (tagData || []).map(tag => ({
+        article_id: tag.article_id,
+        tag_id: tag.tag_id,
+        tags: tag.tags
+      }));
 
       return {
         ...articleData,
         categories: category,
         authors: author,
-        article_tags: tagData || []
+        article_tags: articleTags
       };
     },
     enabled: !!slug
@@ -245,7 +273,7 @@ const ArticlePage = () => {
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Tag className="h-4 w-4 text-muted-foreground" />
-                    {tags.map((tagRelation: any, index: number) => (
+                    {tags.map((tagRelation, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {tagRelation.tags?.name}
                       </Badge>
