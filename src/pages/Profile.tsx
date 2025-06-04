@@ -32,7 +32,7 @@ const Profile = () => {
     weekly_mileage: '',
     training_days: '',
     preferred_unit: 'mi',
-    vdot: '',
+    fitness_score: '',
     recent_race_distance: '',
     recent_race_time: '',
     race_goal: '',
@@ -76,7 +76,7 @@ const Profile = () => {
             weekly_mileage: profile.weekly_mileage?.toString() || '',
             training_days: profile.training_days?.toString() || '',
             preferred_unit: profile.preferred_unit || 'mi',
-            vdot: profile.vdot?.toString() || '',
+            fitness_score: profile.fitness_score?.toString() || '',
             recent_race_distance: profile.recent_race_distance || '',
             recent_race_time: profile.recent_race_time || '',
             race_goal: profile.race_goal || '',
@@ -126,7 +126,7 @@ const Profile = () => {
         weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
         training_days: formData.training_days ? parseInt(formData.training_days) : null,
         preferred_unit: formData.preferred_unit as Database['public']['Enums']['unit_type'],
-        vdot: formData.vdot ? parseFloat(formData.vdot) : null,
+        fitness_score: formData.fitness_score ? parseFloat(formData.fitness_score) : null,
         recent_race_distance: formData.recent_race_distance ? (formData.recent_race_distance as Database['public']['Enums']['race_type']) : null,
         recent_race_time: formData.recent_race_time || null,
         race_goal: formData.race_goal ? (formData.race_goal as Database['public']['Enums']['race_type']) : null,
@@ -381,12 +381,12 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="vdot" className="text-foreground">VDOT</Label>
+                  <Label htmlFor="fitness_score" className="text-foreground">Fitness Score</Label>
                   <Input
-                    id="vdot"
+                    id="fitness_score"
                     type="number"
-                    value={formData.vdot}
-                    onChange={(e) => handleInputChange('vdot', e.target.value)}
+                    value={formData.fitness_score}
+                    onChange={(e) => handleInputChange('fitness_score', e.target.value)}
                     className="bg-background border-border text-foreground"
                   />
                 </div>

@@ -19,6 +19,7 @@ export type Database = {
             | Database["public"]["Enums"]["experience_level_type"]
             | null
           first_name: string | null
+          fitness_score: number | null
           gender: Database["public"]["Enums"]["gender_type"] | null
           height_cm: number | null
           id: string
@@ -36,7 +37,6 @@ export type Database = {
             | null
           training_start_date: string | null
           updated_at: string
-          vdot: number | null
           weekly_mileage: number | null
           weight_kg: number | null
         }
@@ -49,6 +49,7 @@ export type Database = {
             | Database["public"]["Enums"]["experience_level_type"]
             | null
           first_name?: string | null
+          fitness_score?: number | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           height_cm?: number | null
           id?: string
@@ -66,7 +67,6 @@ export type Database = {
             | null
           training_start_date?: string | null
           updated_at?: string
-          vdot?: number | null
           weekly_mileage?: number | null
           weight_kg?: number | null
         }
@@ -79,6 +79,7 @@ export type Database = {
             | Database["public"]["Enums"]["experience_level_type"]
             | null
           first_name?: string | null
+          fitness_score?: number | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           height_cm?: number | null
           id?: string
@@ -96,7 +97,6 @@ export type Database = {
             | null
           training_start_date?: string | null
           updated_at?: string
-          vdot?: number | null
           weekly_mileage?: number | null
           weight_kg?: number | null
         }
