@@ -124,6 +124,73 @@ const ArticlePage = () => {
       gfm: true,
     });
 
+    // Custom renderer for better styling
+    const renderer = new marked.Renderer();
+    
+    // Enhanced heading renderer
+    renderer.heading = (text, level) => {
+      const sizes = {
+        1: 'text-3xl font-bold mb-8 mt-12 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-4',
+        2: 'text-2xl font-bold mb-6 mt-10 text-gray-900 dark:text-gray-100',
+        3: 'text-xl font-semibold mb-4 mt-8 text-gray-800 dark:text-gray-200',
+        4: 'text-lg font-semibold mb-3 mt-6 text-gray-800 dark:text-gray-200',
+        5: 'text-base font-semibold mb-2 mt-4 text-gray-800 dark:text-gray-200',
+        6: 'text-sm font-semibold mb-2 mt-4 text-gray-800 dark:text-gray-200'
+      };
+      return `<h${level} class="${sizes[level] || sizes[6]}">${text}</h${level}>`;
+    };
+
+    // Enhanced paragraph renderer
+    renderer.paragraph = (text) => {
+      return `<p class="mb-6 leading-relaxed text-gray-700 dark:text-gray-300 text-lg">${text}</p>`;
+    };
+
+    // Enhanced list renderer
+    renderer.list = (body, ordered) => {
+      const tag = ordered ? 'ol' : 'ul';
+      const classes = ordered 
+        ? 'list-decimal list-inside mb-6 space-y-2 text-gray-700 dark:text-gray-300' 
+        : 'list-disc list-inside mb-6 space-y-2 text-gray-700 dark:text-gray-300';
+      return `<${tag} class="${classes}">${body}</${tag}>`;
+    };
+
+    // Enhanced list item renderer
+    renderer.listitem = (text) => {
+      return `<li class="text-lg leading-relaxed">${text}</li>`;
+    };
+
+    // Enhanced strong/bold renderer
+    renderer.strong = (text) => {
+      return `<strong class="font-semibold text-gray-900 dark:text-gray-100">${text}</strong>`;
+    };
+
+    // Enhanced emphasis/italic renderer
+    renderer.em = (text) => {
+      return `<em class="italic text-gray-800 dark:text-gray-200">${text}</em>`;
+    };
+
+    // Enhanced code renderer
+    renderer.code = (code, language) => {
+      return `<pre class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6 overflow-x-auto"><code class="text-sm text-gray-800 dark:text-gray-200">${code}</code></pre>`;
+    };
+
+    // Enhanced inline code renderer
+    renderer.codespan = (code) => {
+      return `<code class="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono">${code}</code>`;
+    };
+
+    // Enhanced blockquote renderer
+    renderer.blockquote = (quote) => {
+      return `<blockquote class="border-l-4 border-blue-500 pl-6 italic mb-6 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 py-4 rounded-r-lg">${quote}</blockquote>`;
+    };
+
+    // Enhanced link renderer
+    renderer.link = (href, title, text) => {
+      const titleAttr = title ? ` title="${title}"` : '';
+      return `<a href="${href}"${titleAttr} class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline decoration-2 underline-offset-2 transition-colors">${text}</a>`;
+    };
+
+    marked.setOptions({ renderer });
     return marked(content);
   };
 
@@ -271,25 +338,17 @@ const ArticlePage = () => {
           </Card>
 
           {/* Article Content */}
-          <Card>
-            <CardContent className="p-8 md:p-12">
-              <div className="prose prose-lg prose-slate max-w-none dark:prose-invert 
-                            prose-headings:font-bold prose-headings:text-foreground prose-headings:mb-6 prose-headings:mt-8
-                            prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl 
-                            prose-p:text-foreground prose-p:leading-relaxed prose-p:mb-6
-                            prose-strong:text-foreground prose-strong:font-semibold
-                            prose-em:text-foreground 
-                            prose-li:text-foreground prose-li:mb-2
-                            prose-ul:mb-6 prose-ol:mb-6
-                            prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
-                            prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-6 prose-blockquote:italic
-                            prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-2 prose-code:py-1 prose-code:rounded
-                            first:prose-p:mt-0">
-                <div 
-                  dangerouslySetInnerHTML={{ 
-                    __html: parseMarkdown(article.content)
-                  }} 
-                />
+          <Card className="shadow-lg border-0">
+            <CardContent className="p-0">
+              <div className="p-8 md:p-12 lg:p-16">
+                <article className="max-w-none">
+                  <div 
+                    className="article-content"
+                    dangerouslySetInnerHTML={{ 
+                      __html: parseMarkdown(article.content)
+                    }} 
+                  />
+                </article>
               </div>
             </CardContent>
           </Card>
@@ -306,6 +365,18 @@ const ArticlePage = () => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .article-content h1:first-child {
+          margin-top: 0;
+        }
+        .article-content p:first-child {
+          margin-top: 0;
+        }
+        .article-content > *:last-child {
+          margin-bottom: 0;
+        }
+      `}</style>
     </div>
   );
 };
