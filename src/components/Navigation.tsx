@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -27,7 +26,7 @@ const Navigation = () => {
     { path: '/dashboard', label: 'Dashboard', icon: Home },
     { path: '/schedule', label: 'Schedule', icon: Calendar },
     { path: '/knowledge', label: 'Knowledge', icon: BookOpen },
-    { path: '/onboarding', label: 'Profile', icon: User },
+    { path: '/profile', label: 'Profile', icon: User },
   ];
 
   const NavContent = () => (
