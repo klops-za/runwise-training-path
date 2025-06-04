@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,7 @@ import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import TrainingSchedule from "./pages/TrainingSchedule";
 import KnowledgeHub from "./pages/KnowledgeHub";
+import ArticlePage from "./pages/ArticlePage";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -29,6 +31,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/schedule" element={<TrainingSchedule />} />
               <Route path="/knowledge" element={<KnowledgeHub />} />
+              <Route path="/knowledge/:slug" element={<ArticlePage />} />
               <Route path="/profile" element={<Profile />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
