@@ -128,7 +128,8 @@ const ArticlePage = () => {
     const renderer = new marked.Renderer();
     
     // Enhanced heading renderer
-    renderer.heading = (text, level) => {
+    renderer.heading = ({ tokens, depth }) => {
+      const text = tokens.map(token => token.raw || '').join('');
       const sizes = {
         1: 'text-3xl font-bold mb-8 mt-12 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-4',
         2: 'text-2xl font-bold mb-6 mt-10 text-gray-900 dark:text-gray-100',
@@ -137,55 +138,56 @@ const ArticlePage = () => {
         5: 'text-base font-semibold mb-2 mt-4 text-gray-800 dark:text-gray-200',
         6: 'text-sm font-semibold mb-2 mt-4 text-gray-800 dark:text-gray-200'
       };
-      return `<h${level} class="${sizes[level] || sizes[6]}">${text}</h${level}>`;
+      return `<h${depth} class="${sizes[depth] || sizes[6]}">${text}</h${depth}>`;
     };
 
     // Enhanced paragraph renderer
-    renderer.paragraph = (text) => {
+    renderer.paragraph = ({ tokens }) => {
+      const text = tokens.map(token => token.raw || '').join('');
       return `<p class="mb-6 leading-relaxed text-gray-700 dark:text-gray-300 text-lg">${text}</p>`;
     };
 
     // Enhanced list renderer
-    renderer.list = (body, ordered) => {
+    renderer.list = ({ items, ordered }) => {
       const tag = ordered ? 'ol' : 'ul';
       const classes = ordered 
         ? 'list-decimal list-inside mb-6 space-y-2 text-gray-700 dark:text-gray-300' 
         : 'list-disc list-inside mb-6 space-y-2 text-gray-700 dark:text-gray-300';
+      const body = items.map(item => `<li class="text-lg leading-relaxed">${item.tokens.map(token => token.raw || '').join('')}</li>`).join('');
       return `<${tag} class="${classes}">${body}</${tag}>`;
     };
 
-    // Enhanced list item renderer
-    renderer.listitem = (text) => {
-      return `<li class="text-lg leading-relaxed">${text}</li>`;
-    };
-
     // Enhanced strong/bold renderer
-    renderer.strong = (text) => {
+    renderer.strong = ({ tokens }) => {
+      const text = tokens.map(token => token.raw || '').join('');
       return `<strong class="font-semibold text-gray-900 dark:text-gray-100">${text}</strong>`;
     };
 
     // Enhanced emphasis/italic renderer
-    renderer.em = (text) => {
+    renderer.em = ({ tokens }) => {
+      const text = tokens.map(token => token.raw || '').join('');
       return `<em class="italic text-gray-800 dark:text-gray-200">${text}</em>`;
     };
 
     // Enhanced code renderer
-    renderer.code = (code, language) => {
-      return `<pre class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6 overflow-x-auto"><code class="text-sm text-gray-800 dark:text-gray-200">${code}</code></pre>`;
+    renderer.code = ({ text, lang }) => {
+      return `<pre class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6 overflow-x-auto"><code class="text-sm text-gray-800 dark:text-gray-200">${text}</code></pre>`;
     };
 
     // Enhanced inline code renderer
-    renderer.codespan = (code) => {
-      return `<code class="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono">${code}</code>`;
+    renderer.codespan = ({ text }) => {
+      return `<code class="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono">${text}</code>`;
     };
 
     // Enhanced blockquote renderer
-    renderer.blockquote = (quote) => {
-      return `<blockquote class="border-l-4 border-blue-500 pl-6 italic mb-6 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 py-4 rounded-r-lg">${quote}</blockquote>`;
+    renderer.blockquote = ({ tokens }) => {
+      const text = tokens.map(token => token.raw || '').join('');
+      return `<blockquote class="border-l-4 border-blue-500 pl-6 italic mb-6 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 py-4 rounded-r-lg">${text}</blockquote>`;
     };
 
     // Enhanced link renderer
-    renderer.link = (href, title, text) => {
+    renderer.link = ({ href, title, tokens }) => {
+      const text = tokens.map(token => token.raw || '').join('');
       const titleAttr = title ? ` title="${title}"` : '';
       return `<a href="${href}"${titleAttr} class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline decoration-2 underline-offset-2 transition-colors">${text}</a>`;
     };
@@ -366,7 +368,7 @@ const ArticlePage = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .article-content h1:first-child {
           margin-top: 0;
         }
