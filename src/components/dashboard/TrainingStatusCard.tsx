@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Play, Plus, RefreshCw } from 'lucide-react';
@@ -40,68 +39,44 @@ const TrainingStatusCard = ({
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // If we have a structured workout, prefer the structured description over the basic description
-      if (structure.description) {
-        return structure.description;
+      // Create unified display format
+      const phases: string[] = [];
+      
+      // Add warmup if present
+      if (structure.warmup) {
+        phases.push(`Warmup: ${structure.warmup.duration}min @ ${structure.warmup.pace || 'easy'} pace`);
       }
       
+      // Add main workout
       const mainSegment = structure.main[0];
-      
-      // Format structured descriptions for specific workout types
-      if (workout.type === 'Interval' && mainSegment?.reps && mainSegment?.distance) {
-        return `${mainSegment.reps}x${(mainSegment.distance * 1609).toFixed(0)}m @ ${mainSegment.pace || 'Interval'} pace`;
+      if (mainSegment) {
+        if (workout.type === 'Interval' && mainSegment?.reps && mainSegment?.distance) {
+          phases.push(`${mainSegment.reps}x${(mainSegment.distance * 1609).toFixed(0)}m @ ${mainSegment.pace || 'interval'} pace`);
+        } else if (workout.type === 'Tempo' && mainSegment?.distance) {
+          phases.push(`${convertDistance(mainSegment.distance)} @ ${mainSegment.pace || 'tempo'} pace`);
+        } else if (workout.type === 'Hill' && mainSegment?.reps && mainSegment?.duration) {
+          phases.push(`${mainSegment.reps}x${mainSegment.duration}s hill repeats`);
+        } else if (mainSegment?.distance) {
+          phases.push(`${convertDistance(mainSegment.distance)} @ ${mainSegment.pace || 'easy'} pace`);
+        } else if (mainSegment?.description) {
+          phases.push(mainSegment.description);
+        }
       }
       
-      if (workout.type === 'Tempo' && mainSegment?.distance) {
-        return `${convertDistance(mainSegment.distance)} @ ${mainSegment.pace || 'Tempo'} pace`;
+      // Add cooldown if present
+      if (structure.cooldown) {
+        phases.push(`Cooldown: ${structure.cooldown.duration}min @ ${structure.cooldown.pace || 'easy'} pace`);
       }
       
-      if (workout.type === 'Hill' && mainSegment?.reps && mainSegment?.duration) {
-        return `${mainSegment.reps}x${mainSegment.duration}s hill repeats`;
+      // Return unified description or fall back
+      if (phases.length > 0) {
+        return phases.join('\n');
       }
       
-      // Use main segment description if available
-      if (mainSegment?.description) {
-        return mainSegment.description;
-      }
-      
-      // Fall back to basic description
-      return workout.description || 'No description available';
+      return structure.description || workout.description || 'No description available';
     } catch (error) {
       console.error('Error parsing workout structure:', error);
       return workout.description || 'No description available';
-    }
-  };
-
-  const renderWorkoutStructurePreview = (workout: Workout) => {
-    if (!workout.details_json) return null;
-    
-    try {
-      const detailsData = workout.details_json;
-      
-      if (!isValidWorkoutStructure(detailsData)) {
-        return null;
-      }
-      
-      const structure = detailsData as WorkoutStructureJson;
-      
-      // Only show structure preview if it adds meaningful information beyond the main description
-      const hasStructuredPhases = structure.warmup || structure.cooldown;
-      if (!hasStructuredPhases) return null;
-      
-      return (
-        <div className="mt-2 text-xs text-muted-foreground space-y-1">
-          {structure.warmup && (
-            <div>Warmup: {structure.warmup.duration}min @ {structure.warmup.pace} pace</div>
-          )}
-          {structure.cooldown && (
-            <div>Cooldown: {structure.cooldown.duration}min @ {structure.cooldown.pace} pace</div>
-          )}
-        </div>
-      );
-    } catch (error) {
-      console.error('Error parsing workout structure:', error);
-      return null;
     }
   };
 
@@ -179,11 +154,9 @@ const TrainingStatusCard = ({
                   </span>
                 </div>
                 
-                <p className="text-sm text-card-foreground mb-2">
+                <div className="text-sm text-card-foreground mb-2 whitespace-pre-line">
                   {getWorkoutDisplayDescription(workout)}
-                </p>
-                
-                {renderWorkoutStructurePreview(workout)}
+                </div>
                 
                 <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-2">
                   {workout.duration && (
