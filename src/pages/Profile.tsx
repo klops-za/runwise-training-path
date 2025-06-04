@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Save, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { User, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,7 +17,6 @@ import type { Database } from '@/integrations/supabase/types';
 type RunnerUpdate = Database['public']['Tables']['runners']['Update'];
 
 const Profile = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -196,19 +193,9 @@ const Profile = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
-                <p className="text-gray-600">Update your running profile and preferences</p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
+              <p className="text-gray-600">Update your running profile and preferences</p>
             </div>
             <Button 
               onClick={saveProfile}
@@ -230,6 +217,7 @@ const Profile = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="first_name">First Name</Label>
@@ -321,6 +309,7 @@ const Profile = () => {
                 <CardTitle className="text-orange-900">Running Experience</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                
                 <div>
                   <Label>Experience Level</Label>
                   <RadioGroup 
@@ -402,6 +391,7 @@ const Profile = () => {
                 <CardTitle className="text-blue-900">Goals & Training Preferences</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="race_goal">Target Race Distance</Label>
