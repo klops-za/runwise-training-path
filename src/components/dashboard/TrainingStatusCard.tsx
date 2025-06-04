@@ -167,10 +167,8 @@ const TrainingStatusCard = ({
               </div>
             </div>
             
-            {/* Sessions Display - only show if training has started */}
             {hasTrainingStarted && (
               <div className="space-y-3">
-                {/* Last Completed Session */}
                 {lastCompletedSession && (
                   <div>
                     <h4 className="font-medium text-sm text-muted-foreground mb-2">Last Completed</h4>
@@ -178,7 +176,6 @@ const TrainingStatusCard = ({
                   </div>
                 )}
 
-                {/* Next Two Upcoming Sessions */}
                 {upcomingSessions.length > 0 && (
                   <div>
                     <h4 className="font-medium text-sm text-muted-foreground mb-2">
@@ -192,7 +189,6 @@ const TrainingStatusCard = ({
                   </div>
                 )}
 
-                {/* Show view all button if there are more sessions */}
                 {currentWeekWorkouts.length > 3 && (
                   <div className="text-center pt-2">
                     <Button variant="outline" size="sm" onClick={() => navigate('/schedule')}>
@@ -203,7 +199,6 @@ const TrainingStatusCard = ({
               </div>
             )}
 
-            {/* Show upcoming training message if not started yet */}
             {!hasTrainingStarted && (
               <div className="text-sm text-muted-foreground">
                 Your personalized {trainingPlan.race_type || 'running'} training plan is ready and will begin on {trainingStartDate?.toLocaleDateString()}. 
@@ -211,7 +206,6 @@ const TrainingStatusCard = ({
               </div>
             )}
 
-            {/* Show active training message if started but no sessions to show */}
             {hasTrainingStarted && !lastCompletedSession && upcomingSessions.length === 0 && (
               <div className="text-sm text-muted-foreground">
                 Your personalized {trainingPlan.race_type || 'running'} training plan is active! 
@@ -236,7 +230,7 @@ const TrainingStatusCard = ({
                 <>
                   <Plus className="h-4 w-4 mr-2" />
                   Generate Training Plan
-                </Plus>
+                </>
               )}
             </Button>
           </div>
