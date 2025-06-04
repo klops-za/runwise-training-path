@@ -34,6 +34,26 @@ const Dashboard = () => {
     ? calculateTrainingPaces(runnerData.fitness_score)
     : { intervalPace: null, tempoPace: null, easyPace: null };
 
+  const fetchWorkoutsForCurrentWeek = async (plan: TrainingPlan) => {
+    const weeksElapsed = plan.start_date 
+      ? Math.floor((new Date().getTime() - new Date(plan.start_date).getTime()) / (1000 * 3600 * 24 * 7))
+      : 0;
+    const currentWeek = Math.min(Math.max(weeksElapsed + 1, 1), 16);
+    
+    const { data: workouts, error: workoutsError } = await supabase
+      .from('workouts')
+      .select('*')
+      .eq('plan_id', plan.id)
+      .eq('week_number', currentWeek)
+      .order('date', { ascending: true });
+
+    if (workoutsError) {
+      console.error('Error fetching workouts:', workoutsError);
+    } else {
+      setCurrentWeekWorkouts(workouts || []);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
@@ -74,23 +94,7 @@ const Dashboard = () => {
           
           // If we have a training plan, fetch current week workouts
           if (plan) {
-            const weeksElapsed = plan.start_date 
-              ? Math.floor((new Date().getTime() - new Date(plan.start_date).getTime()) / (1000 * 3600 * 24 * 7))
-              : 0;
-            const currentWeek = Math.min(Math.max(weeksElapsed + 1, 1), 16);
-            
-            const { data: workouts, error: workoutsError } = await supabase
-              .from('workouts')
-              .select('*')
-              .eq('plan_id', plan.id)
-              .eq('week_number', currentWeek)
-              .order('date', { ascending: true });
-
-            if (workoutsError) {
-              console.error('Error fetching workouts:', workoutsError);
-            } else {
-              setCurrentWeekWorkouts(workouts || []);
-            }
+            await fetchWorkoutsForCurrentWeek(plan);
           }
         }
       } catch (error) {
@@ -157,23 +161,7 @@ const Dashboard = () => {
         setTrainingPlan(newPlan);
         
         // Fetch current week workouts for the new plan
-        const weeksElapsed = newPlan.start_date 
-          ? Math.floor((new Date().getTime() - new Date(newPlan.start_date).getTime()) / (1000 * 3600 * 24 * 7))
-          : 0;
-        const currentWeek = Math.min(Math.max(weeksElapsed + 1, 1), 16);
-        
-        const { data: workouts, error: workoutsError } = await supabase
-          .from('workouts')
-          .select('*')
-          .eq('plan_id', newPlan.id)
-          .eq('week_number', currentWeek)
-          .order('date', { ascending: true });
-
-        if (workoutsError) {
-          console.error('Error fetching workouts:', workoutsError);
-        } else {
-          setCurrentWeekWorkouts(workouts || []);
-        }
+        await fetchWorkoutsForCurrentWeek(newPlan);
       }
 
       toast({
@@ -228,23 +216,7 @@ const Dashboard = () => {
           
           // If we have a training plan, fetch current week workouts
           if (plan) {
-            const weeksElapsed = plan.start_date 
-              ? Math.floor((new Date().getTime() - new Date(plan.start_date).getTime()) / (1000 * 3600 * 24 * 7))
-              : 0;
-            const currentWeek = Math.min(Math.max(weeksElapsed + 1, 1), 16);
-            
-            const { data: workouts, error: workoutsError } = await supabase
-              .from('workouts')
-              .select('*')
-              .eq('plan_id', plan.id)
-              .eq('week_number', currentWeek)
-              .order('date', { ascending: true });
-
-            if (workoutsError) {
-              console.error('Error fetching workouts:', workoutsError);
-            } else {
-              setCurrentWeekWorkouts(workouts || []);
-            }
+            await fetchWorkoutsForCurrentWeek(plan);
           }
         }
       } catch (error) {
@@ -253,6 +225,12 @@ const Dashboard = () => {
     };
 
     fetchData();
+  };
+
+  const handleWorkoutUpdate = async () => {
+    if (trainingPlan) {
+      await fetchWorkoutsForCurrentWeek(trainingPlan);
+    }
   };
 
   const convertDistance = (distanceInMiles: number) => {
@@ -361,6 +339,7 @@ const Dashboard = () => {
               generatingPlan={generatingPlan}
               onGenerateTrainingPlan={generateTrainingPlan}
               convertDistance={convertDistance}
+              onWorkoutUpdate={handleWorkoutUpdate}
             />
           </div>
 
