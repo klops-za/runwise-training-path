@@ -125,11 +125,11 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
           </div>
         </div>
       </div>
@@ -138,12 +138,12 @@ const Dashboard = () => {
 
   if (!runnerData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to RunWise!</h1>
-            <p className="text-gray-600 mb-6">Please complete your profile to get started with your training plan.</p>
+            <h1 className="text-2xl font-bold text-foreground mb-4">Welcome to RunWise!</h1>
+            <p className="text-muted-foreground mb-6">Please complete your profile to get started with your training plan.</p>
             <Button 
               onClick={() => navigate('/profile')}
               className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
@@ -174,16 +174,16 @@ const Dashboard = () => {
     : 'Runner';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Welcome back, {displayName}! 👋
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             {runnerData.race_goal && daysUntilRace ? (
               <>You're training for a {runnerData.race_goal} in {daysUntilRace} days</>
             ) : runnerData.race_goal ? (
@@ -196,15 +196,15 @@ const Dashboard = () => {
 
         {/* Training Plan Generation Section */}
         {!trainingPlan && (
-          <Card className="mb-8 border-blue-200 bg-blue-50">
+          <Card className="mb-8 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
             <CardHeader>
-              <CardTitle className="text-blue-900 flex items-center">
+              <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center">
                 <Plus className="h-5 w-5 mr-2" />
                 Generate Your Training Plan
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-blue-800 mb-4">
+              <p className="text-blue-800 dark:text-blue-200 mb-4">
                 Ready to start training? Generate a personalized 16-week training plan based on your profile.
               </p>
               <Button 
@@ -230,65 +230,65 @@ const Dashboard = () => {
 
         {/* Stats Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-blue-100">
+          <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
                 <Target className="h-4 w-4 mr-2 text-blue-600" />
                 Race Goal
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-foreground">
                 {runnerData.race_goal || 'Not Set'}
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 {daysUntilRace ? `${daysUntilRace} days to go` : 'Set your race date'}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-orange-100">
+          <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
                 <Calendar className="h-4 w-4 mr-2 text-orange-600" />
                 Training Progress
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-foreground">
                 Week {currentWeek}/{totalWeeks}
               </div>
               <Progress value={progressPercentage} className="mt-2" />
             </CardContent>
           </Card>
 
-          <Card className="border-blue-100">
+          <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
                 <TrendingUp className="h-4 w-4 mr-2 text-blue-600" />
                 Weekly Mileage
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-foreground">
                 {runnerData.weekly_mileage ? `${runnerData.weekly_mileage} ${runnerData.preferred_unit || 'mi'}` : 'Not Set'}
               </div>
-              <p className="text-sm text-gray-500">Current target</p>
+              <p className="text-sm text-muted-foreground">Current target</p>
             </CardContent>
           </Card>
 
-          <Card className="border-orange-100">
+          <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
                 <Target className="h-4 w-4 mr-2 text-orange-600" />
                 VDOT Score
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-foreground">
                 {runnerData.vdot || 'Not Set'}
               </div>
-              <p className="text-sm text-gray-500">Current fitness</p>
+              <p className="text-sm text-muted-foreground">Current fitness</p>
             </CardContent>
           </Card>
         </div>
@@ -296,7 +296,7 @@ const Dashboard = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Training Plan Status */}
           <div className="lg:col-span-2">
-            <Card className="border-blue-100">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Training Status</span>
@@ -304,7 +304,7 @@ const Dashboard = () => {
                     variant="outline" 
                     size="sm"
                     onClick={() => navigate('/schedule')}
-                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-950"
                   >
                     View Schedule
                   </Button>
@@ -313,25 +313,25 @@ const Dashboard = () => {
               <CardContent>
                 {trainingPlan ? (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
                       <div>
-                        <div className="font-medium text-green-900">Training Plan Active</div>
-                        <div className="text-sm text-green-700">
+                        <div className="font-medium text-green-900 dark:text-green-100">Training Plan Active</div>
+                        <div className="text-sm text-green-700 dark:text-green-300">
                           Started: {new Date(trainingPlan.start_date || '').toLocaleDateString()}
                         </div>
                       </div>
-                      <div className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                      <div className="px-2 py-1 rounded-full text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
                         ✓ Generated
                       </div>
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-muted-foreground">
                       Your personalized {trainingPlan.race_type || 'running'} training plan is ready! 
                       View your weekly schedule to see today's workout.
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">No training plan generated yet.</p>
+                    <p className="text-muted-foreground mb-4">No training plan generated yet.</p>
                     <Button 
                       onClick={generateTrainingPlan}
                       disabled={generatingPlan}
@@ -357,7 +357,7 @@ const Dashboard = () => {
 
           {/* Quick Actions */}
           <div className="space-y-6">
-            <Card className="border-orange-100">
+            <Card>
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
@@ -404,12 +404,12 @@ const Dashboard = () => {
 
             {/* Plan Status */}
             {trainingPlan && (
-              <Card className="border-green-100 bg-green-50">
+              <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30">
                 <CardHeader>
-                  <CardTitle className="text-green-800">Training Plan Active</CardTitle>
+                  <CardTitle className="text-green-800 dark:text-green-200">Training Plan Active</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-green-700">
+                  <div className="text-green-700 dark:text-green-300">
                     <p className="font-medium">Week {currentWeek} of {totalWeeks}</p>
                     <p className="text-sm">
                       Your {trainingPlan.race_type || 'running'} training plan is personalized 
