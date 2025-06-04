@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -281,12 +280,12 @@ const Dashboard = () => {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
                 <Target className="h-4 w-4 mr-2 text-orange-600" />
-                VDOT Score
+                Fitness Score
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">
-                {runnerData.vdot || 'Not Set'}
+                {runnerData.fitness_score || 'Not Set'}
               </div>
               <p className="text-sm text-muted-foreground">Current fitness</p>
             </CardContent>

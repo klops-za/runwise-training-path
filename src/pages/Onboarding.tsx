@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,7 @@ const Onboarding = () => {
     weekly_mileage: '',
     training_days: '',
     preferred_unit: 'mi',
-    vdot: '',
+    fitness_score: '',
     recent_race_distance: '',
     recent_race_time: '',
     race_goal: '',
@@ -151,7 +150,7 @@ const Onboarding = () => {
         weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
         training_days: formData.training_days ? parseInt(formData.training_days) : null,
         preferred_unit: formData.preferred_unit as Database['public']['Enums']['unit_type'],
-        vdot: formData.vdot ? parseFloat(formData.vdot) : null,
+        fitness_score: formData.fitness_score ? parseFloat(formData.fitness_score) : null,
         recent_race_distance: formData.recent_race_distance ? (formData.recent_race_distance as Database['public']['Enums']['race_type']) : null,
         recent_race_time: formData.recent_race_time || null,
         race_goal: formData.race_goal ? (formData.race_goal as Database['public']['Enums']['race_type']) : null,
@@ -529,16 +528,16 @@ const Onboarding = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="vdot">VDOT (Optional)</Label>
+                    <Label htmlFor="fitness_score">Fitness Score (Optional)</Label>
                     <Input
-                      id="vdot"
+                      id="fitness_score"
                       type="number"
-                      value={formData.vdot}
-                      onChange={(e) => handleInputChange('vdot', e.target.value)}
+                      value={formData.fitness_score}
+                      onChange={(e) => handleInputChange('fitness_score', e.target.value)}
                       placeholder="45"
                     />
                     <p className="text-sm text-gray-500 mt-1">
-                      If you don't know your VDOT, we can calculate it from your recent race time
+                      If you don't know your fitness score, we can calculate it from your recent race time
                     </p>
                   </div>
                 </div>
