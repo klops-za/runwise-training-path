@@ -1,9 +1,9 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Target, Zap } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
-import { isValidWorkoutStructure, type WorkoutStructureJson } from '@/utils/workoutStructures';
+import { isValidWorkoutStructure, type WorkoutStructureJson, PACE_ZONES, EFFORT_LEVELS } from '@/utils/workoutStructures';
+import { getStandardPace, getStandardEffort } from '@/utils/paceZones';
 
 type Workout = Database['public']['Tables']['workouts']['Row'];
 
@@ -20,6 +20,18 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
       case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       default: return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
     }
+  };
+
+  const formatPaceDisplay = (pace?: string) => {
+    if (!pace) return 'Easy';
+    // Ensure we display standardized pace names
+    return Object.values(PACE_ZONES).includes(pace as any) ? pace : getStandardPace(workout.type || 'Easy');
+  };
+
+  const formatEffortDisplay = (effort?: string) => {
+    if (!effort) return 'Moderate';
+    // Ensure we display standardized effort names
+    return Object.values(EFFORT_LEVELS).includes(effort as any) ? effort : getStandardEffort(workout.type || 'Easy');
   };
 
   const renderStructuredWorkout = () => {
@@ -48,13 +60,13 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
             {structure.main.map((segment, index) => (
               <div key={index} className="text-sm text-blue-800 dark:text-blue-200">
                 {segment.reps && segment.distance && (
-                  <p>{segment.reps}x{(segment.distance * 1609).toFixed(0)}m @ {segment.pace} pace</p>
+                  <p>{segment.reps}x{(segment.distance * 1609).toFixed(0)}m @ {formatPaceDisplay(segment.pace)} pace</p>
                 )}
                 {segment.reps && segment.duration && (
-                  <p>{segment.reps}x{segment.duration}s @ {segment.effort} effort</p>
+                  <p>{segment.reps}x{segment.duration}s @ {formatEffortDisplay(segment.effort)} effort</p>
                 )}
                 {segment.distance && !segment.reps && (
-                  <p>{convertDistance(segment.distance)} @ {segment.pace} pace</p>
+                  <p>{convertDistance(segment.distance)} @ {formatPaceDisplay(segment.pace)} pace</p>
                 )}
                 {segment.rest && <p className="text-xs">Rest: {segment.rest}s between reps</p>}
                 {segment.description && <p className="text-xs italic mt-1">{segment.description}</p>}
@@ -62,7 +74,7 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
                   <div className="ml-4 mt-2 space-y-1">
                     {segment.segments.map((subsegment, subIndex) => (
                       <p key={subIndex} className="text-xs">
-                        {subsegment.distance && `${convertDistance(subsegment.distance)} @ ${subsegment.pace} pace`}
+                        {subsegment.distance && `${convertDistance(subsegment.distance)} @ ${formatPaceDisplay(subsegment.pace)} pace`}
                       </p>
                     ))}
                   </div>

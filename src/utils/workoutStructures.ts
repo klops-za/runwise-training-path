@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -27,6 +26,31 @@ export interface WorkoutStructureJson {
   min_distance?: number;
   max_distance?: number;
 }
+
+// Standardized pace zones for consistency
+export const PACE_ZONES = {
+  RECOVERY: 'Recovery',
+  EASY: 'Easy',
+  AEROBIC: 'Aerobic',
+  TEMPO: 'Tempo',
+  THRESHOLD: 'Threshold',
+  GOAL: 'Goal',
+  INTERVAL: '5K',
+  MILE: 'Mile',
+  VO2MAX: 'VO2Max'
+} as const;
+
+// Standardized effort levels for consistency
+export const EFFORT_LEVELS = {
+  VERY_EASY: 'Very Easy',
+  EASY: 'Easy',
+  MODERATE: 'Moderate',
+  COMFORTABLE_HARD: 'Comfortably Hard',
+  HARD: 'Hard',
+  VERY_HARD: 'Very Hard',
+  RACE_EFFORT: 'Race Effort',
+  MAXIMUM: 'Maximum'
+} as const;
 
 export const getWorkoutStructure = async (
   workoutType: WorkoutType,
@@ -67,13 +91,13 @@ export const generateWorkoutDescription = (
   switch (workoutType) {
     case 'Interval':
       if (mainSegment?.reps && mainSegment?.distance) {
-        return `${mainSegment.reps}x${mainSegment.distance * 1609}m @ ${mainSegment.pace || '5K'} pace with ${mainSegment.rest || 90}s rest`;
+        return `${mainSegment.reps}x${mainSegment.distance * 1609}m @ ${mainSegment.pace || PACE_ZONES.INTERVAL} pace with ${mainSegment.rest || 90}s rest`;
       }
       return mainSegment?.description || 'Interval training session';
     
     case 'Tempo':
       if (mainSegment?.distance) {
-        return `${mainSegment.distance} mile tempo run at comfortably hard effort`;
+        return `${mainSegment.distance} mile tempo run at ${EFFORT_LEVELS.COMFORTABLE_HARD.toLowerCase()} effort`;
       }
       return mainSegment?.description || 'Tempo run at threshold pace';
     
@@ -90,10 +114,10 @@ export const generateWorkoutDescription = (
       return mainSegment?.description || 'Long endurance run';
     
     case 'Easy':
-      return mainSegment?.description || 'Easy run at conversational pace';
+      return mainSegment?.description || `Easy run at ${EFFORT_LEVELS.EASY.toLowerCase()} pace`;
     
     case 'Recovery':
-      return mainSegment?.description || 'Recovery run at very easy pace';
+      return mainSegment?.description || `Recovery run at ${EFFORT_LEVELS.VERY_EASY.toLowerCase()} pace`;
     
     case 'Cross-training':
       return mainSegment?.description || 'Cross-training activity';
