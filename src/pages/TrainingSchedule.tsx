@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import type { Database } from '@/integrations/supabase/types';
 
 type Workout = Database['public']['Tables']['workouts']['Row'];
 type TrainingPlan = Database['public']['Tables']['training_plans']['Row'];
+type Runner = Database['public']['Tables']['runners']['Row'];
 
 const TrainingSchedule = () => {
   const { user } = useAuth();
@@ -19,6 +19,7 @@ const TrainingSchedule = () => {
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [trainingPlan, setTrainingPlan] = useState<TrainingPlan | null>(null);
+  const [runner, setRunner] = useState<Runner | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,6 +27,19 @@ const TrainingSchedule = () => {
       if (!user) return;
 
       try {
+        // Fetch the runner's profile to get unit preference
+        const { data: runnerData, error: runnerError } = await supabase
+          .from('runners')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (runnerError) {
+          console.error('Error fetching runner profile:', runnerError);
+        } else {
+          setRunner(runnerData);
+        }
+
         // Fetch the user's training plan
         const { data: plan, error: planError } = await supabase
           .from('training_plans')
@@ -89,6 +103,15 @@ const TrainingSchedule = () => {
     fetchTrainingData();
   }, [user, toast]);
 
+  const convertDistance = (distanceInMiles: number) => {
+    if (!runner?.preferred_unit || runner.preferred_unit === 'mi') {
+      return `${distanceInMiles.toFixed(1)} miles`;
+    } else {
+      const distanceInKm = distanceInMiles * 1.60934;
+      return `${distanceInKm.toFixed(1)} km`;
+    }
+  };
+
   const toggleWorkoutStatus = async (workoutId: string) => {
     const workout = workouts.find(w => w.id === workoutId);
     if (!workout) return;
@@ -145,10 +168,14 @@ const TrainingSchedule = () => {
   // Filter workouts for selected week
   const weekWorkouts = workouts.filter(workout => workout.week_number === selectedWeek);
 
-  // Calculate week summary
+  // Calculate week summary with proper unit conversion
   const completedWorkouts = weekWorkouts.filter(w => w.status === 'Completed').length;
   const totalWorkouts = weekWorkouts.length;
-  const totalDistance = weekWorkouts.reduce((sum, w) => sum + (w.distance_target || 0), 0);
+  const totalDistanceMiles = weekWorkouts.reduce((sum, w) => sum + (w.distance_target || 0), 0);
+  const totalDistance = runner?.preferred_unit === 'km' ? 
+    (totalDistanceMiles * 1.60934).toFixed(1) : 
+    totalDistanceMiles.toFixed(1);
+  const distanceUnit = runner?.preferred_unit === 'km' ? 'km' : 'miles';
 
   if (loading) {
     return (
@@ -273,7 +300,7 @@ const TrainingSchedule = () => {
                         {workout.distance_target && (
                           <div className="flex items-center">
                             <MapPin className="h-4 w-4 mr-1" />
-                            {workout.distance_target} miles
+                            {convertDistance(workout.distance_target)}
                           </div>
                         )}
                       </div>
@@ -317,8 +344,8 @@ const TrainingSchedule = () => {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-blue-600">{totalDistance.toFixed(1)}</div>
-                <div className="text-sm text-gray-600">Total Miles</div>
+                <div className="text-2xl font-bold text-blue-600">{totalDistance}</div>
+                <div className="text-sm text-gray-600">Total {distanceUnit}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-orange-600">{totalWorkouts}</div>
@@ -334,7 +361,7 @@ const TrainingSchedule = () => {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </div>
       </div>
     </div>
   );
