@@ -1,32 +1,113 @@
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Calendar, Target, TrendingUp, Settings, RefreshCw, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
+import type { Database } from '@/integrations/supabase/types';
+
+type RunnerData = Database['public']['Tables']['runners']['Row'];
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [runnerData, setRunnerData] = useState<RunnerData | null>(null);
 
-  // Mock data - this will come from Supabase later
-  const runnerData = {
-    name: "John Runner",
-    race_goal: "Half Marathon",
-    race_date: "2024-04-15",
-    current_week: 8,
-    total_weeks: 16,
-    weekly_mileage: 25,
-    vdot: 42,
-    recent_workouts: [
-      { date: "2024-01-15", type: "Easy Run", distance: "5 miles", status: "completed" },
-      { date: "2024-01-13", type: "Tempo Run", distance: "4 miles", status: "completed" },
-      { date: "2024-01-11", type: "Long Run", distance: "8 miles", status: "completed" }
-    ]
-  };
+  useEffect(() => {
+    const fetchRunnerData = async () => {
+      if (!user) return;
 
-  const daysUntilRace = Math.ceil((new Date("2024-04-15").getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-  const progressPercentage = (runnerData.current_week / runnerData.total_weeks) * 100;
+      try {
+        const { data: runner, error } = await supabase
+          .from('runners')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching runner data:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load your profile data.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setRunnerData(runner);
+      } catch (error) {
+        console.error('Unexpected error fetching runner data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRunnerData();
+  }, [user, toast]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!runnerData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to RunWise!</h1>
+            <p className="text-gray-600 mb-6">Please complete your profile to get started with your training plan.</p>
+            <Button 
+              onClick={() => navigate('/profile')}
+              className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
+            >
+              Complete Profile
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate days until race
+  const daysUntilRace = runnerData.race_date 
+    ? Math.ceil((new Date(runnerData.race_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))
+    : null;
+
+  // Calculate training progress (mock calculation for now)
+  const weeksElapsed = runnerData.training_start_date 
+    ? Math.floor((new Date().getTime() - new Date(runnerData.training_start_date).getTime()) / (1000 * 3600 * 24 * 7))
+    : 0;
+  const totalWeeks = 16; // Standard training plan length
+  const currentWeek = Math.min(weeksElapsed + 1, totalWeeks);
+  const progressPercentage = (currentWeek / totalWeeks) * 100;
+
+  // Mock recent workouts (will be replaced with real data from training plans later)
+  const recentWorkouts = [
+    { date: "2024-01-15", type: "Easy Run", distance: "5 miles", status: "completed" },
+    { date: "2024-01-13", type: "Tempo Run", distance: "4 miles", status: "completed" },
+    { date: "2024-01-11", type: "Long Run", distance: "8 miles", status: "completed" }
+  ];
+
+  const displayName = runnerData.first_name 
+    ? `${runnerData.first_name}${runnerData.last_name ? ' ' + runnerData.last_name : ''}`
+    : 'Runner';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
@@ -36,10 +117,16 @@ const Dashboard = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {runnerData.name}! 👋
+            Welcome back, {displayName}! 👋
           </h1>
           <p className="text-gray-600">
-            You're training for a {runnerData.race_goal} in {daysUntilRace} days
+            {runnerData.race_goal && daysUntilRace ? (
+              <>You're training for a {runnerData.race_goal} in {daysUntilRace} days</>
+            ) : runnerData.race_goal ? (
+              <>You're training for a {runnerData.race_goal}</>
+            ) : (
+              <>Ready to start your training journey?</>
+            )}
           </p>
         </div>
 
@@ -53,8 +140,12 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{runnerData.race_goal}</div>
-              <p className="text-sm text-gray-500">{daysUntilRace} days to go</p>
+              <div className="text-2xl font-bold text-gray-900">
+                {runnerData.race_goal || 'Not Set'}
+              </div>
+              <p className="text-sm text-gray-500">
+                {daysUntilRace ? `${daysUntilRace} days to go` : 'Set your race date'}
+              </p>
             </CardContent>
           </Card>
 
@@ -67,7 +158,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
-                Week {runnerData.current_week}/{runnerData.total_weeks}
+                Week {currentWeek}/{totalWeeks}
               </div>
               <Progress value={progressPercentage} className="mt-2" />
             </CardContent>
@@ -81,8 +172,10 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{runnerData.weekly_mileage} mi</div>
-              <p className="text-sm text-gray-500">This week</p>
+              <div className="text-2xl font-bold text-gray-900">
+                {runnerData.weekly_mileage ? `${runnerData.weekly_mileage} ${runnerData.preferred_unit || 'mi'}` : 'Not Set'}
+              </div>
+              <p className="text-sm text-gray-500">Current target</p>
             </CardContent>
           </Card>
 
@@ -94,7 +187,9 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{runnerData.vdot}</div>
+              <div className="text-2xl font-bold text-gray-900">
+                {runnerData.vdot || 'Not Set'}
+              </div>
               <p className="text-sm text-gray-500">Current fitness</p>
             </CardContent>
           </Card>
@@ -119,7 +214,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {runnerData.recent_workouts.map((workout, index) => (
+                  {recentWorkouts.map((workout, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <div className="font-medium text-gray-900">{workout.type}</div>
@@ -183,17 +278,22 @@ const Dashboard = () => {
             </Card>
 
             {/* Recent Achievement */}
-            <Card className="border-green-100 bg-green-50">
-              <CardHeader>
-                <CardTitle className="text-green-800">Recent Achievement</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-green-700">
-                  <p className="font-medium">Longest Run Yet!</p>
-                  <p className="text-sm">You completed your 8-mile long run this week - that's a new personal best for training!</p>
-                </div>
-              </CardContent>
-            </Card>
+            {runnerData.weekly_mileage && (
+              <Card className="border-green-100 bg-green-50">
+                <CardHeader>
+                  <CardTitle className="text-green-800">Profile Complete!</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-green-700">
+                    <p className="font-medium">Ready to Train!</p>
+                    <p className="text-sm">
+                      Your profile is set up for {runnerData.race_goal || 'running'} training. 
+                      {runnerData.weekly_mileage && ` Current target: ${runnerData.weekly_mileage} ${runnerData.preferred_unit || 'mi'}/week.`}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
