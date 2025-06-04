@@ -148,8 +148,9 @@ export const calculateWorkoutDistance = (
   // For interval workouts, calculate total distance including reps
   if (mainSegment?.reps && mainSegment?.distance) {
     const intervalDistance = mainSegment.reps * mainSegment.distance;
-    const warmupCooldown = ((structureJson.warmup || 0) + (structureJson.cooldown || 0)) / 10; // rough conversion
-    return intervalDistance + warmupCooldown;
+    const warmupDistance = structureJson.warmup?.duration ? structureJson.warmup.duration / 10 : 0; // rough conversion
+    const cooldownDistance = structureJson.cooldown?.duration ? structureJson.cooldown.duration / 10 : 0; // rough conversion
+    return intervalDistance + warmupDistance + cooldownDistance;
   }
   
   // For segmented workouts, sum all segments
@@ -178,8 +179,8 @@ export const calculateWorkoutDuration = (
     return structureJson.min_duration;
   }
 
-  const warmup = structureJson.warmup || 0;
-  const cooldown = structureJson.cooldown || 0;
+  const warmup = structureJson.warmup?.duration || 0;
+  const cooldown = structureJson.cooldown?.duration || 0;
   const mainSegment = structureJson.main[0];
   
   // For interval workouts, calculate total time including rest
