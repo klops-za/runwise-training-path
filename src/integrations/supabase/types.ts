@@ -254,12 +254,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_fitness_score: {
+        Args: { race_time_str: string; race_distance: string }
+        Returns: number
+      }
       generate_training_plan: {
         Args: { runner_uuid: string }
         Returns: string
       }
       get_current_training_week: {
         Args: { start_date: string }
+        Returns: number
+      }
+      time_to_fraction_of_day: {
+        Args: { time_str: string }
         Returns: number
       }
     }

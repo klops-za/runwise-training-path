@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -127,7 +126,6 @@ const Profile = () => {
         weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
         training_days: formData.training_days ? parseInt(formData.training_days) : null,
         preferred_unit: formData.preferred_unit as Database['public']['Enums']['unit_type'],
-        fitness_score: formData.fitness_score ? parseFloat(formData.fitness_score) : null,
         recent_race_distance: formData.recent_race_distance ? (formData.recent_race_distance as Database['public']['Enums']['race_type']) : null,
         recent_race_time: formData.recent_race_time || null,
         race_goal: formData.race_goal ? (formData.race_goal as Database['public']['Enums']['race_type']) : null,
@@ -137,6 +135,8 @@ const Profile = () => {
         cross_training_preferences: formData.cross_training_preferences.length > 0 ? formData.cross_training_preferences : null,
         training_start_date: formData.training_start_date || null
       };
+
+      console.log('Saving profile data:', profileData);
 
       const { error } = await supabase
         .from('runners')
@@ -151,6 +151,20 @@ const Profile = () => {
           variant: "destructive",
         });
         return;
+      }
+
+      // Reload the profile to get the updated fitness score
+      const { data: updatedProfile } = await supabase
+        .from('runners')
+        .select('fitness_score')
+        .eq('id', user.id)
+        .single();
+
+      if (updatedProfile) {
+        setFormData(prev => ({
+          ...prev,
+          fitness_score: updatedProfile.fitness_score?.toString() || ''
+        }));
       }
 
       toast({
@@ -382,13 +396,14 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="fitness_score" className="text-foreground">Fitness Score</Label>
+                  <Label htmlFor="fitness_score" className="text-foreground">Fitness Score (Auto-calculated)</Label>
                   <Input
                     id="fitness_score"
                     type="number"
                     value={formData.fitness_score}
-                    onChange={(e) => handleInputChange('fitness_score', e.target.value)}
-                    className="bg-background border-border text-foreground"
+                    readOnly
+                    className="bg-gray-100 dark:bg-gray-800 border-border text-foreground cursor-not-allowed"
+                    placeholder="Enter race time and distance to calculate"
                   />
                 </div>
               </CardContent>
