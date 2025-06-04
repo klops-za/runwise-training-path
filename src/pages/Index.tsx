@@ -4,13 +4,49 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Target, Calendar, Trophy, BarChart3 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import AuthForm from '@/components/AuthForm';
 
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [hasProfile, setHasProfile] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    const checkUserProfile = async () => {
+      if (user) {
+        try {
+          const { data: profile, error } = await supabase
+            .from('runners')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (!error && profile) {
+            setHasProfile(true);
+          } else {
+            // User doesn't have a profile, redirect to onboarding
+            navigate('/onboarding');
+            return;
+          }
+        } catch (error) {
+          console.error('Error checking user profile:', error);
+          // If there's an error, assume they need onboarding
+          navigate('/onboarding');
+          return;
+        }
+      }
+      setProfileLoading(false);
+    };
+
+    if (!loading) {
+      checkUserProfile();
+    }
+  }, [user, loading, navigate]);
+
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
@@ -18,7 +54,7 @@ const Index = () => {
     );
   }
 
-  if (user) {
+  if (user && hasProfile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
         <div className="container mx-auto px-4 py-16">
