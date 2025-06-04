@@ -89,6 +89,30 @@ const ArticlePage = () => {
     });
   };
 
+  const parseMarkdown = (content: string) => {
+    return content
+      // Headers (##)
+      .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold mt-8 mb-4 text-foreground">$1</h2>')
+      // Bold text (**text**)
+      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+      // Italic text (*text*)
+      .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em class="italic">$1</em>')
+      // Line breaks
+      .replace(/\n\n/g, '</p><p class="mb-4">')
+      .replace(/\n/g, '<br />')
+      // Wrap in paragraphs
+      .replace(/^(.+)$/gm, (match) => {
+        if (match.startsWith('<h2') || match.startsWith('<br')) {
+          return match;
+        }
+        return `<p class="mb-4">${match}</p>`;
+      })
+      // Clean up extra paragraph tags around headers
+      .replace(/<p class="mb-4">(<h2.*?<\/h2>)<\/p>/g, '$1')
+      // Clean up empty paragraphs
+      .replace(/<p class="mb-4"><\/p>/g, '');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
@@ -237,9 +261,9 @@ const ArticlePage = () => {
             <CardContent className="p-8">
               <div className="prose prose-lg max-w-none dark:prose-invert">
                 <div 
-                  className="leading-relaxed"
+                  className="leading-relaxed text-foreground [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mt-8 [&>h2]:mb-4 [&>h2]:text-foreground [&>p]:mb-4 [&>p]:text-foreground [&>strong]:font-semibold [&>em]:italic"
                   dangerouslySetInnerHTML={{ 
-                    __html: article.content.replace(/\n/g, '<br />') 
+                    __html: parseMarkdown(article.content)
                   }} 
                 />
               </div>
