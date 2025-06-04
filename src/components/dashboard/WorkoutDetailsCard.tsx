@@ -59,6 +59,11 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
         return `${mainSegment.reps}x${mainSegment.duration}s hill repeats @ ${formatEffortDisplay(mainSegment.effort)} effort with ${mainSegment.rest || 90}s recovery`;
       }
       
+      // Use structured description if available
+      if (mainSegment?.description) {
+        return mainSegment.description;
+      }
+      
       // For other workout types, use the original description
       return workout.description;
     } catch (error) {
@@ -82,32 +87,43 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
       return (
         <div className="mt-4 space-y-3">
           {structure.warmup && (
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Target className="h-4 w-4 mr-2" />
-              Warmup: {structure.warmup} minutes
+            <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
+              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1 flex items-center">
+                <Target className="h-4 w-4 mr-2" />
+                Warmup
+              </h4>
+              <div className="text-sm text-blue-800 dark:text-blue-200">
+                {structure.warmup.duration && `${structure.warmup.duration} minutes`}
+                {structure.warmup.pace && ` @ ${formatPaceDisplay(structure.warmup.pace)} pace`}
+                {structure.warmup.description && (
+                  <p className="text-xs italic mt-1">{structure.warmup.description}</p>
+                )}
+              </div>
             </div>
           )}
           
-          <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
-            <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Main Workout</h4>
+          <div className="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg">
+            <h4 className="font-medium text-orange-900 dark:text-orange-100 mb-2">Main Workout</h4>
             {structure.main.map((segment, index) => (
-              <div key={index} className="text-sm text-blue-800 dark:text-blue-200">
+              <div key={index} className="text-sm text-orange-800 dark:text-orange-200 mb-2">
                 {segment.reps && segment.distance && (
-                  <p>{segment.reps}x{(segment.distance * 1609).toFixed(0)}m @ {formatPaceDisplay(segment.pace)} pace</p>
+                  <p className="font-medium">{segment.reps}x{(segment.distance * 1609).toFixed(0)}m @ {formatPaceDisplay(segment.pace)} pace</p>
                 )}
                 {segment.reps && segment.duration && (
-                  <p>{segment.reps}x{segment.duration}s @ {formatEffortDisplay(segment.effort)} effort</p>
+                  <p className="font-medium">{segment.reps}x{segment.duration}s @ {formatEffortDisplay(segment.effort)} effort</p>
                 )}
                 {segment.distance && !segment.reps && (
-                  <p>{convertDistance(segment.distance)} @ {formatPaceDisplay(segment.pace)} pace</p>
+                  <p className="font-medium">{convertDistance(segment.distance)} @ {formatPaceDisplay(segment.pace)} pace</p>
                 )}
                 {segment.rest && <p className="text-xs">Rest: {segment.rest}s between reps</p>}
                 {segment.description && <p className="text-xs italic mt-1">{segment.description}</p>}
                 {segment.segments && (
                   <div className="ml-4 mt-2 space-y-1">
+                    <p className="text-xs font-medium">Segments:</p>
                     {segment.segments.map((subsegment, subIndex) => (
                       <p key={subIndex} className="text-xs">
                         {subsegment.distance && `${convertDistance(subsegment.distance)} @ ${formatPaceDisplay(subsegment.pace)} pace`}
+                        {subsegment.description && ` - ${subsegment.description}`}
                       </p>
                     ))}
                   </div>
@@ -117,9 +133,18 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
           </div>
           
           {structure.cooldown && (
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Target className="h-4 w-4 mr-2" />
-              Cooldown: {structure.cooldown} minutes
+            <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-lg">
+              <h4 className="font-medium text-green-900 dark:text-green-100 mb-1 flex items-center">
+                <Target className="h-4 w-4 mr-2" />
+                Cooldown
+              </h4>
+              <div className="text-sm text-green-800 dark:text-green-200">
+                {structure.cooldown.duration && `${structure.cooldown.duration} minutes`}
+                {structure.cooldown.pace && ` @ ${formatPaceDisplay(structure.cooldown.pace)} pace`}
+                {structure.cooldown.description && (
+                  <p className="text-xs italic mt-1">{structure.cooldown.description}</p>
+                )}
+              </div>
             </div>
           )}
         </div>

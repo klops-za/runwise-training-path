@@ -54,11 +54,47 @@ const TrainingStatusCard = ({
         return `${mainSegment.reps}x${mainSegment.duration}s hill repeats`;
       }
       
+      // Use structured description if available
+      if (mainSegment?.description) {
+        return mainSegment.description;
+      }
+      
       // For other workout types, use the original description
       return workout.description || 'No description available';
     } catch (error) {
       console.error('Error parsing workout structure:', error);
       return workout.description || 'No description available';
+    }
+  };
+
+  const renderWorkoutStructurePreview = (workout: Workout) => {
+    if (!workout.details_json) return null;
+    
+    try {
+      const detailsData = workout.details_json;
+      
+      if (!isValidWorkoutStructure(detailsData)) {
+        return null;
+      }
+      
+      const structure = detailsData as WorkoutStructureJson;
+      
+      return (
+        <div className="mt-2 text-xs text-muted-foreground space-y-1">
+          {structure.warmup && (
+            <div>Warmup: {structure.warmup.duration}min @ {structure.warmup.pace} pace</div>
+          )}
+          <div className="font-medium text-foreground">
+            Main: {getWorkoutDisplayDescription(workout)}
+          </div>
+          {structure.cooldown && (
+            <div>Cooldown: {structure.cooldown.duration}min @ {structure.cooldown.pace} pace</div>
+          )}
+        </div>
+      );
+    } catch (error) {
+      console.error('Error parsing workout structure:', error);
+      return null;
     }
   };
 
@@ -140,7 +176,9 @@ const TrainingStatusCard = ({
                   {getWorkoutDisplayDescription(workout)}
                 </p>
                 
-                <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                {renderWorkoutStructurePreview(workout)}
+                
+                <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-2">
                   {workout.duration && (
                     <span>{workout.duration} min</span>
                   )}
