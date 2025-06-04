@@ -255,7 +255,12 @@ export type Database = {
     }
     Functions: {
       calculate_fitness_score: {
-        Args: { race_time_str: string; race_distance: string }
+        Args:
+          | {
+              race_time_str: string
+              race_distance: Database["public"]["Enums"]["race_type"]
+            }
+          | { race_time_str: string; race_distance: string }
         Returns: number
       }
       generate_training_plan: {

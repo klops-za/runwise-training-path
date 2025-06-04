@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Save } from 'lucide-react';
+import { User, Save, Timer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import Navigation from '@/components/Navigation';
+import { calculateTrainingPaces, formatPace } from '@/utils/paceCalculations';
 import type { Database } from '@/integrations/supabase/types';
 
 type RunnerUpdate = Database['public']['Tables']['runners']['Update'];
@@ -42,6 +43,9 @@ const Profile = () => {
     cross_training_preferences: [] as string[],
     training_start_date: ''
   });
+
+  // Calculate training paces based on fitness score
+  const trainingPaces = calculateTrainingPaces(parseFloat(formData.fitness_score) || 0);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -211,6 +215,7 @@ const Profile = () => {
   const heightLabel = formData.preferred_unit === 'mi' ? 'Height (inches)' : 'Height (cm)';
   const weightLabel = formData.preferred_unit === 'mi' ? 'Weight (lbs)' : 'Weight (kg)';
   const mileageLabel = formData.preferred_unit === 'mi' ? 'Current Weekly Mileage (miles)' : 'Current Weekly Mileage (km)';
+  const paceUnit = formData.preferred_unit === 'mi' ? 'mile' : 'km';
 
   if (loading) {
     return (
@@ -430,6 +435,49 @@ const Profile = () => {
                     placeholder="Enter race time and distance to calculate"
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Training Paces - New Card */}
+            <Card className="border-green-100 dark:border-green-800">
+              <CardHeader>
+                <CardTitle className="flex items-center text-green-900 dark:text-green-100">
+                  <Timer className="mr-2 h-5 w-5 text-green-600 dark:text-green-400" />
+                  Calculated Training Paces
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <Label className="text-foreground">Interval Training Pace</Label>
+                    <Input
+                      value={formatPace(trainingPaces.intervalPace, paceUnit)}
+                      readOnly
+                      className="bg-gray-100 dark:bg-gray-800 border-border text-foreground cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-foreground">Tempo Training Pace</Label>
+                    <Input
+                      value={formatPace(trainingPaces.tempoPace, paceUnit)}
+                      readOnly
+                      className="bg-gray-100 dark:bg-gray-800 border-border text-foreground cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-foreground">Easy Training Pace</Label>
+                    <Input
+                      value={formatPace(trainingPaces.easyPace, paceUnit)}
+                      readOnly
+                      className="bg-gray-100 dark:bg-gray-800 border-border text-foreground cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+                {!formData.fitness_score && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Training paces will be calculated once you enter your recent race time and distance.
+                  </p>
+                )}
               </CardContent>
             </Card>
 
