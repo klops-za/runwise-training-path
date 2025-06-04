@@ -118,82 +118,15 @@ const ArticlePage = () => {
   };
 
   const parseMarkdown = (content: string) => {
-    // Configure marked for better styling
+    // Configure marked with simpler options
     marked.setOptions({
       breaks: true,
       gfm: true,
     });
 
-    // Custom renderer for better styling
-    const renderer = new marked.Renderer();
-    
-    // Enhanced heading renderer
-    renderer.heading = ({ tokens, depth }) => {
-      const text = tokens.map(token => token.raw || '').join('');
-      const sizes = {
-        1: 'text-3xl font-bold mb-8 mt-12 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-4',
-        2: 'text-2xl font-bold mb-6 mt-10 text-gray-900 dark:text-gray-100',
-        3: 'text-xl font-semibold mb-4 mt-8 text-gray-800 dark:text-gray-200',
-        4: 'text-lg font-semibold mb-3 mt-6 text-gray-800 dark:text-gray-200',
-        5: 'text-base font-semibold mb-2 mt-4 text-gray-800 dark:text-gray-200',
-        6: 'text-sm font-semibold mb-2 mt-4 text-gray-800 dark:text-gray-200'
-      };
-      return `<h${depth} class="${sizes[depth] || sizes[6]}">${text}</h${depth}>`;
-    };
-
-    // Enhanced paragraph renderer
-    renderer.paragraph = ({ tokens }) => {
-      const text = tokens.map(token => token.raw || '').join('');
-      return `<p class="mb-6 leading-relaxed text-gray-700 dark:text-gray-300 text-lg">${text}</p>`;
-    };
-
-    // Enhanced list renderer
-    renderer.list = ({ items, ordered }) => {
-      const tag = ordered ? 'ol' : 'ul';
-      const classes = ordered 
-        ? 'list-decimal list-inside mb-6 space-y-2 text-gray-700 dark:text-gray-300' 
-        : 'list-disc list-inside mb-6 space-y-2 text-gray-700 dark:text-gray-300';
-      const body = items.map(item => `<li class="text-lg leading-relaxed">${item.tokens.map(token => token.raw || '').join('')}</li>`).join('');
-      return `<${tag} class="${classes}">${body}</${tag}>`;
-    };
-
-    // Enhanced strong/bold renderer
-    renderer.strong = ({ tokens }) => {
-      const text = tokens.map(token => token.raw || '').join('');
-      return `<strong class="font-semibold text-gray-900 dark:text-gray-100">${text}</strong>`;
-    };
-
-    // Enhanced emphasis/italic renderer
-    renderer.em = ({ tokens }) => {
-      const text = tokens.map(token => token.raw || '').join('');
-      return `<em class="italic text-gray-800 dark:text-gray-200">${text}</em>`;
-    };
-
-    // Enhanced code renderer
-    renderer.code = ({ text, lang }) => {
-      return `<pre class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6 overflow-x-auto"><code class="text-sm text-gray-800 dark:text-gray-200">${text}</code></pre>`;
-    };
-
-    // Enhanced inline code renderer
-    renderer.codespan = ({ text }) => {
-      return `<code class="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono">${text}</code>`;
-    };
-
-    // Enhanced blockquote renderer
-    renderer.blockquote = ({ tokens }) => {
-      const text = tokens.map(token => token.raw || '').join('');
-      return `<blockquote class="border-l-4 border-blue-500 pl-6 italic mb-6 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 py-4 rounded-r-lg">${text}</blockquote>`;
-    };
-
-    // Enhanced link renderer
-    renderer.link = ({ href, title, tokens }) => {
-      const text = tokens.map(token => token.raw || '').join('');
-      const titleAttr = title ? ` title="${title}"` : '';
-      return `<a href="${href}"${titleAttr} class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline decoration-2 underline-offset-2 transition-colors">${text}</a>`;
-    };
-
-    marked.setOptions({ renderer });
-    return marked(content);
+    // Use the default renderer but with custom CSS classes
+    const html = marked(content);
+    return html;
   };
 
   if (isLoading) {
@@ -343,9 +276,21 @@ const ArticlePage = () => {
           <Card className="shadow-lg border-0">
             <CardContent className="p-0">
               <div className="p-8 md:p-12 lg:p-16">
-                <article className="max-w-none">
+                <article className="max-w-none prose prose-lg prose-gray dark:prose-invert mx-auto">
                   <div 
-                    className="article-content"
+                    className="prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-gray-100 
+                              prose-h1:text-3xl prose-h1:mb-8 prose-h1:mt-12 prose-h1:border-b prose-h1:border-gray-200 dark:prose-h1:border-gray-700 prose-h1:pb-4
+                              prose-h2:text-2xl prose-h2:mb-6 prose-h2:mt-10
+                              prose-h3:text-xl prose-h3:mb-4 prose-h3:mt-8
+                              prose-p:mb-6 prose-p:leading-relaxed prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:text-lg
+                              prose-ul:mb-6 prose-ul:space-y-2 prose-li:text-lg prose-li:leading-relaxed
+                              prose-ol:mb-6 prose-ol:space-y-2
+                              prose-strong:font-semibold prose-strong:text-gray-900 dark:prose-strong:text-gray-100
+                              prose-em:italic prose-em:text-gray-800 dark:prose-em:text-gray-200
+                              prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:text-gray-800 dark:prose-code:text-gray-200 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:font-mono
+                              prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:rounded-lg prose-pre:p-4 prose-pre:mb-6 prose-pre:overflow-x-auto
+                              prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:mb-6 prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400 prose-blockquote:bg-gray-50 dark:prose-blockquote:bg-gray-800 prose-blockquote:py-4 prose-blockquote:rounded-r-lg
+                              prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:hover:text-blue-800 dark:prose-a:hover:text-blue-300 prose-a:underline prose-a:decoration-2 prose-a:underline-offset-2 prose-a:transition-colors"
                     dangerouslySetInnerHTML={{ 
                       __html: parseMarkdown(article.content)
                     }} 
@@ -369,13 +314,13 @@ const ArticlePage = () => {
       </div>
 
       <style>{`
-        .article-content h1:first-child {
+        .prose h1:first-child {
           margin-top: 0;
         }
-        .article-content p:first-child {
+        .prose p:first-child {
           margin-top: 0;
         }
-        .article-content > *:last-child {
+        .prose > *:last-child {
           margin-bottom: 0;
         }
       `}</style>
