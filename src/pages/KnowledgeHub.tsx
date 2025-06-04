@@ -29,34 +29,52 @@ const KnowledgeHub = () => {
     }
   });
 
-  // Fetch articles
+  // Fetch articles with separate queries for related data
   const { data: articles, isLoading } = useQuery({
     queryKey: ['articles', selectedCategory, searchTerm],
     queryFn: async () => {
       let query = supabase
         .from('articles' as any)
-        .select(`
-          *,
-          categories (name, color_scheme),
-          authors (name),
-          article_tags (
-            tags (name)
-          )
-        `)
+        .select('*')
         .eq('published', true)
         .order('published_at', { ascending: false });
-
-      if (selectedCategory !== 'all') {
-        query = query.eq('categories.name', selectedCategory);
-      }
 
       if (searchTerm) {
         query = query.or(`title.ilike.%${searchTerm}%,excerpt.ilike.%${searchTerm}%`);
       }
 
-      const { data, error } = await query;
+      const { data: articlesData, error } = await query;
       if (error) throw error;
-      return data || [];
+
+      // Get all categories and authors separately
+      const { data: categoriesData } = await supabase
+        .from('categories' as any)
+        .select('*');
+
+      const { data: authorsData } = await supabase
+        .from('authors' as any)
+        .select('*');
+
+      // Combine the data
+      const enrichedArticles = (articlesData || []).map((article: any) => {
+        const category = categoriesData?.find((cat: any) => cat.id === article.category_id);
+        const author = authorsData?.find((auth: any) => auth.id === article.author_id);
+        
+        return {
+          ...article,
+          categories: category,
+          authors: author
+        };
+      });
+
+      // Filter by category if selected
+      if (selectedCategory !== 'all') {
+        return enrichedArticles.filter((article: any) => 
+          article.categories?.name === selectedCategory
+        );
+      }
+
+      return enrichedArticles;
     }
   });
 
@@ -64,19 +82,37 @@ const KnowledgeHub = () => {
   const { data: featuredArticles } = useQuery({
     queryKey: ['featured-articles'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: articlesData, error } = await supabase
         .from('articles' as any)
-        .select(`
-          *,
-          categories (name, color_scheme),
-          authors (name)
-        `)
+        .select('*')
         .eq('published', true)
         .eq('featured', true)
         .order('published_at', { ascending: false })
         .limit(3);
       if (error) throw error;
-      return data || [];
+
+      // Get categories and authors for featured articles
+      const { data: categoriesData } = await supabase
+        .from('categories' as any)
+        .select('*');
+
+      const { data: authorsData } = await supabase
+        .from('authors' as any)
+        .select('*');
+
+      // Combine the data
+      const enrichedArticles = (articlesData || []).map((article: any) => {
+        const category = categoriesData?.find((cat: any) => cat.id === article.category_id);
+        const author = authorsData?.find((auth: any) => auth.id === article.author_id);
+        
+        return {
+          ...article,
+          categories: category,
+          authors: author
+        };
+      });
+
+      return enrichedArticles;
     }
   });
 

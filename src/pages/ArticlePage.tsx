@@ -19,22 +19,53 @@ const ArticlePage = () => {
     queryFn: async () => {
       if (!slug) throw new Error('No slug provided');
       
-      const { data, error } = await supabase
+      // First get the article
+      const { data: articleData, error: articleError } = await supabase
         .from('articles' as any)
-        .select(`
-          *,
-          categories (name, color_scheme),
-          authors (name, bio),
-          article_tags (
-            tags (name)
-          )
-        `)
+        .select('*')
         .eq('slug', slug)
         .eq('published', true)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (articleError) throw articleError;
+      if (!articleData) return null;
+
+      // Get category if exists
+      let category = null;
+      if (articleData.category_id) {
+        const { data: categoryData } = await supabase
+          .from('categories' as any)
+          .select('*')
+          .eq('id', articleData.category_id)
+          .single();
+        category = categoryData;
+      }
+
+      // Get author if exists
+      let author = null;
+      if (articleData.author_id) {
+        const { data: authorData } = await supabase
+          .from('authors' as any)
+          .select('*')
+          .eq('id', articleData.author_id)
+          .single();
+        author = authorData;
+      }
+
+      // Get tags
+      const { data: tagData } = await supabase
+        .from('article_tags' as any)
+        .select(`
+          tags (name)
+        `)
+        .eq('article_id', articleData.id);
+
+      return {
+        ...articleData,
+        categories: category,
+        authors: author,
+        article_tags: tagData || []
+      };
     },
     enabled: !!slug
   });
@@ -190,7 +221,7 @@ const ArticlePage = () => {
                     <Tag className="h-4 w-4 text-muted-foreground" />
                     {tags.map((tagRelation: any, index: number) => (
                       <Badge key={index} variant="secondary" className="text-xs">
-                        {tagRelation.tags.name}
+                        {tagRelation.tags?.name}
                       </Badge>
                     ))}
                   </div>
