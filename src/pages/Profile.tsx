@@ -115,7 +115,8 @@ const Profile = () => {
 
     setSaving(true);
     try {
-      const profileData: RunnerUpdate = {
+      // First, let's try a simple update without the fields that might trigger the function issue
+      const basicProfileData: RunnerUpdate = {
         first_name: formData.first_name || null,
         last_name: formData.last_name || null,
         age: formData.age ? parseInt(formData.age) : null,
@@ -126,8 +127,6 @@ const Profile = () => {
         weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
         training_days: formData.training_days ? parseInt(formData.training_days) : null,
         preferred_unit: formData.preferred_unit as Database['public']['Enums']['unit_type'],
-        recent_race_distance: formData.recent_race_distance ? (formData.recent_race_distance as Database['public']['Enums']['race_type']) : null,
-        recent_race_time: formData.recent_race_time || null,
         race_goal: formData.race_goal ? (formData.race_goal as Database['public']['Enums']['race_type']) : null,
         race_date: formData.race_date || null,
         training_intensity_preference: formData.training_intensity_preference ? (formData.training_intensity_preference as Database['public']['Enums']['intensity_type']) : null,
@@ -136,24 +135,49 @@ const Profile = () => {
         training_start_date: formData.training_start_date || null
       };
 
-      console.log('Saving profile data:', profileData);
+      console.log('Saving basic profile data:', basicProfileData);
 
-      const { error } = await supabase
+      const { error: basicError } = await supabase
         .from('runners')
-        .update(profileData)
+        .update(basicProfileData)
         .eq('id', user.id);
 
-      if (error) {
-        console.error('Error updating profile:', error);
+      if (basicError) {
+        console.error('Error updating basic profile:', basicError);
         toast({
           title: "Error",
-          description: "Failed to update your profile.",
+          description: "Failed to update your basic profile information.",
           variant: "destructive",
         });
         return;
       }
 
-      // Reload the profile to get the updated fitness score
+      // Now update race data separately if provided
+      if (formData.recent_race_time && formData.recent_race_distance) {
+        console.log('Updating race data:', {
+          recent_race_time: formData.recent_race_time,
+          recent_race_distance: formData.recent_race_distance
+        });
+
+        const { error: raceError } = await supabase
+          .from('runners')
+          .update({
+            recent_race_distance: formData.recent_race_distance as Database['public']['Enums']['race_type'],
+            recent_race_time: formData.recent_race_time
+          })
+          .eq('id', user.id);
+
+        if (raceError) {
+          console.error('Error updating race data:', raceError);
+          toast({
+            title: "Profile Updated",
+            description: "Basic profile updated, but there was an issue calculating fitness score.",
+            variant: "destructive",
+          });
+        }
+      }
+
+      // Reload the profile to get any updated fitness score
       const { data: updatedProfile } = await supabase
         .from('runners')
         .select('fitness_score')
