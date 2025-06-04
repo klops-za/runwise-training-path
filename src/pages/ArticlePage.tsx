@@ -19,9 +19,9 @@ const ArticlePage = () => {
     queryFn: async () => {
       if (!slug) throw new Error('No slug provided');
       
-      // First get the article
+      // Get the article first
       const { data: articleData, error: articleError } = await supabase
-        .from('articles' as any)
+        .from('articles')
         .select('*')
         .eq('slug', slug)
         .eq('published', true)
@@ -30,33 +30,35 @@ const ArticlePage = () => {
       if (articleError) throw articleError;
       if (!articleData) return null;
 
-      // Get category if exists
+      // Get category separately if it exists
       let category = null;
       if (articleData.category_id) {
         const { data: categoryData } = await supabase
-          .from('categories' as any)
+          .from('categories')
           .select('*')
           .eq('id', articleData.category_id)
           .single();
         category = categoryData;
       }
 
-      // Get author if exists
+      // Get author separately if it exists
       let author = null;
       if (articleData.author_id) {
         const { data: authorData } = await supabase
-          .from('authors' as any)
+          .from('authors')
           .select('*')
           .eq('id', articleData.author_id)
           .single();
         author = authorData;
       }
 
-      // Get tags
+      // Get tags separately
       const { data: tagData } = await supabase
-        .from('article_tags' as any)
+        .from('article_tags')
         .select(`
-          tags (name)
+          tags (
+            name
+          )
         `)
         .eq('article_id', articleData.id);
 
