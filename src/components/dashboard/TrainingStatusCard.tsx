@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw, Clock, MapPin } from 'lucide-react';
+import { Plus, RefreshCw, Clock, MapPin, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -27,6 +27,14 @@ const TrainingStatusCard = ({
 }: TrainingStatusCardProps) => {
   const navigate = useNavigate();
 
+  // Check if training has started based on start date
+  const today = new Date();
+  const trainingStartDate = trainingPlan?.start_date ? new Date(trainingPlan.start_date) : null;
+  const hasTrainingStarted = trainingStartDate ? today >= trainingStartDate : false;
+  const daysUntilStart = trainingStartDate && !hasTrainingStarted 
+    ? Math.ceil((trainingStartDate.getTime() - today.getTime()) / (1000 * 3600 * 24))
+    : 0;
+
   return (
     <Card>
       <CardHeader>
@@ -45,20 +53,42 @@ const TrainingStatusCard = ({
       <CardContent>
         {trainingPlan ? (
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+            <div className={`flex items-center justify-between p-3 rounded-lg border ${
+              hasTrainingStarted 
+                ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800'
+                : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'
+            }`}>
               <div>
-                <div className="font-medium text-green-900 dark:text-green-100">Training Plan Active</div>
-                <div className="text-sm text-green-700 dark:text-green-300">
-                  Started: {new Date(trainingPlan.start_date || '').toLocaleDateString()}
+                <div className={`font-medium ${
+                  hasTrainingStarted 
+                    ? 'text-green-900 dark:text-green-100'
+                    : 'text-blue-900 dark:text-blue-100'
+                }`}>
+                  {hasTrainingStarted ? 'Training Plan Active' : 'Training Plan Scheduled'}
+                </div>
+                <div className={`text-sm flex items-center ${
+                  hasTrainingStarted 
+                    ? 'text-green-700 dark:text-green-300'
+                    : 'text-blue-700 dark:text-blue-300'
+                }`}>
+                  <Calendar className="h-3 w-3 mr-1" />
+                  {hasTrainingStarted 
+                    ? `Started: ${trainingStartDate.toLocaleDateString()}`
+                    : `Starts: ${trainingStartDate.toLocaleDateString()} (${daysUntilStart} days)`
+                  }
                 </div>
               </div>
-              <div className="px-2 py-1 rounded-full text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                ✓ Generated
+              <div className={`px-2 py-1 rounded-full text-xs ${
+                hasTrainingStarted 
+                  ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                  : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+              }`}>
+                {hasTrainingStarted ? '✓ Active' : '⏳ Scheduled'}
               </div>
             </div>
             
-            {/* This Week's Sessions */}
-            {currentWeekWorkouts.length > 0 && (
+            {/* This Week's Sessions - only show if training has started */}
+            {hasTrainingStarted && currentWeekWorkouts.length > 0 && (
               <div className="space-y-3">
                 <h4 className="font-medium text-foreground">This Week's Sessions (Week {currentWeek})</h4>
                 <div className="space-y-2">
@@ -99,11 +129,22 @@ const TrainingStatusCard = ({
                 </div>
               </div>
             )}
-            
-            <div className="text-sm text-muted-foreground">
-              Your personalized {trainingPlan.race_type || 'running'} training plan is ready! 
-              View your weekly schedule to see today's workout.
-            </div>
+
+            {/* Show upcoming training message if not started yet */}
+            {!hasTrainingStarted && (
+              <div className="text-sm text-muted-foreground">
+                Your personalized {trainingPlan.race_type || 'running'} training plan is ready and will begin on {trainingStartDate?.toLocaleDateString()}. 
+                Your weekly schedule will be available once training starts.
+              </div>
+            )}
+
+            {/* Show active training message if started */}
+            {hasTrainingStarted && (
+              <div className="text-sm text-muted-foreground">
+                Your personalized {trainingPlan.race_type || 'running'} training plan is active! 
+                View your weekly schedule to see today's workout.
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-8">
