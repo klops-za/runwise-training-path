@@ -175,7 +175,7 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center">
@@ -187,15 +187,15 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
-              <p className="text-gray-600">Update your running profile and preferences</p>
+              <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
+              <p className="text-muted-foreground">Update your running profile and preferences</p>
             </div>
             <Button 
               onClick={saveProfile}
@@ -209,10 +209,10 @@ const Profile = () => {
 
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Personal Information */}
-            <Card className="border-blue-100">
+            <Card className="border-blue-100 dark:border-blue-800">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <User className="mr-2 h-5 w-5 text-blue-600" />
+                <CardTitle className="flex items-center text-foreground">
+                  <User className="mr-2 h-5 w-5 text-blue-600 dark:text-blue-400" />
                   Personal Information
                 </CardTitle>
               </CardHeader>
@@ -220,40 +220,43 @@ const Profile = () => {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="first_name">First Name</Label>
+                    <Label htmlFor="first_name" className="text-foreground">First Name</Label>
                     <Input
                       id="first_name"
                       value={formData.first_name}
                       onChange={(e) => handleInputChange('first_name', e.target.value)}
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="last_name">Last Name</Label>
+                    <Label htmlFor="last_name" className="text-foreground">Last Name</Label>
                     <Input
                       id="last_name"
                       value={formData.last_name}
                       onChange={(e) => handleInputChange('last_name', e.target.value)}
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="age">Age</Label>
+                    <Label htmlFor="age" className="text-foreground">Age</Label>
                     <Input
                       id="age"
                       type="number"
                       value={formData.age}
                       onChange={(e) => handleInputChange('age', e.target.value)}
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="gender">Gender</Label>
+                    <Label htmlFor="gender" className="text-foreground">Gender</Label>
                     <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background border-border text-foreground">
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-border">
                         <SelectItem value="Male">Male</SelectItem>
                         <SelectItem value="Female">Female</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
@@ -263,7 +266,7 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <Label>Preferred Units</Label>
+                  <Label className="text-foreground">Preferred Units</Label>
                   <RadioGroup 
                     value={formData.preferred_unit} 
                     onValueChange={(value) => handleInputChange('preferred_unit', value)}
@@ -271,32 +274,34 @@ const Profile = () => {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="mi" id="miles" />
-                      <Label htmlFor="miles">Miles</Label>
+                      <Label htmlFor="miles" className="text-foreground">Miles</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="km" id="kilometers" />
-                      <Label htmlFor="kilometers">Kilometers</Label>
+                      <Label htmlFor="kilometers" className="text-foreground">Kilometers</Label>
                     </div>
                   </RadioGroup>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="height_cm">{heightLabel}</Label>
+                    <Label htmlFor="height_cm" className="text-foreground">{heightLabel}</Label>
                     <Input
                       id="height_cm"
                       type="number"
                       value={formData.height_cm}
                       onChange={(e) => handleInputChange('height_cm', e.target.value)}
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="weight_kg">{weightLabel}</Label>
+                    <Label htmlFor="weight_kg" className="text-foreground">{weightLabel}</Label>
                     <Input
                       id="weight_kg"
                       type="number"
                       value={formData.weight_kg}
                       onChange={(e) => handleInputChange('weight_kg', e.target.value)}
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                 </div>
@@ -304,14 +309,14 @@ const Profile = () => {
             </Card>
 
             {/* Running Information */}
-            <Card className="border-orange-100">
+            <Card className="border-orange-100 dark:border-orange-800">
               <CardHeader>
-                <CardTitle className="text-orange-900">Running Experience</CardTitle>
+                <CardTitle className="text-orange-900 dark:text-orange-100">Running Experience</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 
                 <div>
-                  <Label>Experience Level</Label>
+                  <Label className="text-foreground">Experience Level</Label>
                   <RadioGroup 
                     value={formData.experience_level} 
                     onValueChange={(value) => handleInputChange('experience_level', value)}
@@ -319,35 +324,36 @@ const Profile = () => {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="Novice" id="novice" />
-                      <Label htmlFor="novice">Novice (0-1 years)</Label>
+                      <Label htmlFor="novice" className="text-foreground">Novice (0-1 years)</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="Recreational" id="recreational" />
-                      <Label htmlFor="recreational">Recreational (1-3 years)</Label>
+                      <Label htmlFor="recreational" className="text-foreground">Recreational (1-3 years)</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="Competitive" id="competitive" />
-                      <Label htmlFor="competitive">Competitive (3-5 years)</Label>
+                      <Label htmlFor="competitive" className="text-foreground">Competitive (3-5 years)</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="Elite" id="elite" />
-                      <Label htmlFor="elite">Elite (5+ years)</Label>
+                      <Label htmlFor="elite" className="text-foreground">Elite (5+ years)</Label>
                     </div>
                   </RadioGroup>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="weekly_mileage">{mileageLabel}</Label>
+                    <Label htmlFor="weekly_mileage" className="text-foreground">{mileageLabel}</Label>
                     <Input
                       id="weekly_mileage"
                       type="number"
                       value={formData.weekly_mileage}
                       onChange={(e) => handleInputChange('weekly_mileage', e.target.value)}
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="training_days">Training Days per Week</Label>
+                    <Label htmlFor="training_days" className="text-foreground">Training Days per Week</Label>
                     <Input
                       id="training_days"
                       type="number"
@@ -355,17 +361,18 @@ const Profile = () => {
                       max="7"
                       value={formData.training_days}
                       onChange={(e) => handleInputChange('training_days', e.target.value)}
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="training_intensity_preference">Training Intensity</Label>
+                  <Label htmlFor="training_intensity_preference" className="text-foreground">Training Intensity</Label>
                   <Select value={formData.training_intensity_preference} onValueChange={(value) => handleInputChange('training_intensity_preference', value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue placeholder="Select intensity" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background border-border">
                       <SelectItem value="Low">Low - Focus on easy runs</SelectItem>
                       <SelectItem value="Moderate">Moderate - Balanced approach</SelectItem>
                       <SelectItem value="High">High - Intense training</SelectItem>
@@ -374,32 +381,33 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="vdot">VDOT</Label>
+                  <Label htmlFor="vdot" className="text-foreground">VDOT</Label>
                   <Input
                     id="vdot"
                     type="number"
                     value={formData.vdot}
                     onChange={(e) => handleInputChange('vdot', e.target.value)}
+                    className="bg-background border-border text-foreground"
                   />
                 </div>
               </CardContent>
             </Card>
 
             {/* Goals & Training */}
-            <Card className="border-blue-100 lg:col-span-2">
+            <Card className="border-blue-100 dark:border-blue-800 lg:col-span-2">
               <CardHeader>
-                <CardTitle className="text-blue-900">Goals & Training Preferences</CardTitle>
+                <CardTitle className="text-blue-900 dark:text-blue-100">Goals & Training Preferences</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="race_goal">Target Race Distance</Label>
+                    <Label htmlFor="race_goal" className="text-foreground">Target Race Distance</Label>
                     <Select value={formData.race_goal} onValueChange={(value) => handleInputChange('race_goal', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background border-border text-foreground">
                         <SelectValue placeholder="Select distance" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-border">
                         <SelectItem value="5K">5K</SelectItem>
                         <SelectItem value="10K">10K</SelectItem>
                         <SelectItem value="Half Marathon">Half Marathon</SelectItem>
@@ -408,33 +416,35 @@ const Profile = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="race_date">Target Race Date</Label>
+                    <Label htmlFor="race_date" className="text-foreground">Target Race Date</Label>
                     <Input
                       id="race_date"
                       type="date"
                       value={formData.race_date}
                       onChange={(e) => handleInputChange('race_date', e.target.value)}
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="training_start_date">Training Start Date</Label>
+                    <Label htmlFor="training_start_date" className="text-foreground">Training Start Date</Label>
                     <Input
                       id="training_start_date"
                       type="date"
                       value={formData.training_start_date}
                       onChange={(e) => handleInputChange('training_start_date', e.target.value)}
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="recent_race_distance">Recent Race Distance</Label>
+                    <Label htmlFor="recent_race_distance" className="text-foreground">Recent Race Distance</Label>
                     <Select value={formData.recent_race_distance} onValueChange={(value) => handleInputChange('recent_race_distance', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background border-border text-foreground">
                         <SelectValue placeholder="Select distance" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-border">
                         <SelectItem value="5K">5K</SelectItem>
                         <SelectItem value="10K">10K</SelectItem>
                         <SelectItem value="Half Marathon">Half Marathon</SelectItem>
@@ -443,29 +453,31 @@ const Profile = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="recent_race_time">Recent Race Time</Label>
+                    <Label htmlFor="recent_race_time" className="text-foreground">Recent Race Time</Label>
                     <Input
                       id="recent_race_time"
                       value={formData.recent_race_time}
                       onChange={(e) => handleInputChange('recent_race_time', e.target.value)}
                       placeholder="e.g., 25:00 or 52:30"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="injury_history">Injury History</Label>
+                  <Label htmlFor="injury_history" className="text-foreground">Injury History</Label>
                   <Textarea
                     id="injury_history"
                     value={formData.injury_history}
                     onChange={(e) => handleInputChange('injury_history', e.target.value)}
                     placeholder="Describe any past injuries or physical limitations..."
                     rows={3}
+                    className="bg-background border-border text-foreground"
                   />
                 </div>
 
                 <div>
-                  <Label>Cross-Training Preferences</Label>
+                  <Label className="text-foreground">Cross-Training Preferences</Label>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-2">
                     {crossTrainingOptions.map((activity) => (
                       <div key={activity} className="flex items-center space-x-2">
@@ -474,7 +486,7 @@ const Profile = () => {
                           checked={formData.cross_training_preferences.includes(activity)}
                           onCheckedChange={(checked) => handleCrossTrainingChange(activity, checked as boolean)}
                         />
-                        <Label htmlFor={activity}>{activity}</Label>
+                        <Label htmlFor={activity} className="text-foreground">{activity}</Label>
                       </div>
                     ))}
                   </div>
