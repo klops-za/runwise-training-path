@@ -22,6 +22,10 @@ export interface WorkoutStructureJson {
   warmup?: number;
   main: WorkoutSegment[];
   cooldown?: number;
+  description?: string;
+  min_duration?: number;
+  min_distance?: number;
+  max_distance?: number;
 }
 
 export const getWorkoutStructure = async (
@@ -53,6 +57,11 @@ export const generateWorkoutDescription = (
   distance?: number,
   duration?: number
 ): string => {
+  // Use description from structure if available
+  if (structureJson.description) {
+    return structureJson.description;
+  }
+
   const mainSegment = structureJson.main[0];
   
   switch (workoutType) {
@@ -98,6 +107,11 @@ export const calculateWorkoutDistance = (
   structureJson: WorkoutStructureJson,
   baseDistance: number
 ): number => {
+  // Use min_distance from structure if available
+  if (structureJson.min_distance) {
+    return structureJson.min_distance;
+  }
+
   const mainSegment = structureJson.main[0];
   
   // For interval workouts, calculate total distance including reps
@@ -128,6 +142,11 @@ export const calculateWorkoutDuration = (
   structureJson: WorkoutStructureJson,
   baseDuration: number
 ): number => {
+  // Use min_duration from structure if available
+  if (structureJson.min_duration) {
+    return structureJson.min_duration;
+  }
+
   const warmup = structureJson.warmup || 0;
   const cooldown = structureJson.cooldown || 0;
   const mainSegment = structureJson.main[0];
@@ -146,4 +165,14 @@ export const calculateWorkoutDuration = (
   
   // Fall back to base duration
   return baseDuration;
+};
+
+export const isValidWorkoutStructure = (data: any): data is WorkoutStructureJson => {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    !Array.isArray(data) &&
+    'main' in data &&
+    Array.isArray(data.main)
+  );
 };

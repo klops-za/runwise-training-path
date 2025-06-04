@@ -1,8 +1,9 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Target, Zap } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
-import type { WorkoutStructureJson } from '@/utils/workoutStructures';
+import { isValidWorkoutStructure, type WorkoutStructureJson } from '@/utils/workoutStructures';
 
 type Workout = Database['public']['Tables']['workouts']['Row'];
 
@@ -21,21 +22,10 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
     }
   };
 
-  const isValidWorkoutStructure = (data: any): data is WorkoutStructureJson => {
-    return (
-      typeof data === 'object' &&
-      data !== null &&
-      !Array.isArray(data) &&
-      'main' in data &&
-      Array.isArray(data.main)
-    );
-  };
-
   const renderStructuredWorkout = () => {
     if (!workout.details_json) return null;
     
     try {
-      // Safe type checking with proper validation
       const detailsData = workout.details_json;
       
       if (!isValidWorkoutStructure(detailsData)) {
