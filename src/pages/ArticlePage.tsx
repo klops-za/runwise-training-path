@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
+import { marked } from 'marked';
 
 // Define types for enriched data
 type Category = Tables<'categories'>;
@@ -118,27 +118,13 @@ const ArticlePage = () => {
   };
 
   const parseMarkdown = (content: string) => {
-    return content
-      // Headers (##)
-      .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold mt-8 mb-4 text-foreground">$1</h2>')
-      // Bold text (**text**)
-      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-      // Italic text (*text*)
-      .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em class="italic">$1</em>')
-      // Line breaks
-      .replace(/\n\n/g, '</p><p class="mb-4">')
-      .replace(/\n/g, '<br />')
-      // Wrap in paragraphs
-      .replace(/^(.+)$/gm, (match) => {
-        if (match.startsWith('<h2') || match.startsWith('<br')) {
-          return match;
-        }
-        return `<p class="mb-4">${match}</p>`;
-      })
-      // Clean up extra paragraph tags around headers
-      .replace(/<p class="mb-4">(<h2.*?<\/h2>)<\/p>/g, '$1')
-      // Clean up empty paragraphs
-      .replace(/<p class="mb-4"><\/p>/g, '');
+    // Configure marked for better styling
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+    });
+
+    return marked(content);
   };
 
   if (isLoading) {
@@ -287,9 +273,8 @@ const ArticlePage = () => {
           {/* Article Content */}
           <Card>
             <CardContent className="p-8">
-              <div className="prose prose-lg max-w-none dark:prose-invert">
+              <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-li:text-foreground prose-a:text-blue-600 dark:prose-a:text-blue-400">
                 <div 
-                  className="leading-relaxed text-foreground [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mt-8 [&>h2]:mb-4 [&>h2]:text-foreground [&>p]:mb-4 [&>p]:text-foreground [&>strong]:font-semibold [&>em]:italic"
                   dangerouslySetInnerHTML={{ 
                     __html: parseMarkdown(article.content)
                   }} 
