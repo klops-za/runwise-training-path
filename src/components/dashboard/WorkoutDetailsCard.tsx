@@ -44,6 +44,12 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
       }
       
       const structure = detailsData as WorkoutStructureJson;
+      
+      // Prefer structured description over basic description
+      if (structure.description) {
+        return structure.description;
+      }
+      
       const mainSegment = structure.main[0];
       
       // Format structured descriptions for interval and tempo workouts

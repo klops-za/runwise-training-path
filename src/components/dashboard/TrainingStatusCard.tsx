@@ -39,9 +39,15 @@ const TrainingStatusCard = ({
       }
       
       const structure = detailsData as WorkoutStructureJson;
+      
+      // If we have a structured workout, prefer the structured description over the basic description
+      if (structure.description) {
+        return structure.description;
+      }
+      
       const mainSegment = structure.main[0];
       
-      // Format structured descriptions for interval and tempo workouts
+      // Format structured descriptions for specific workout types
       if (workout.type === 'Interval' && mainSegment?.reps && mainSegment?.distance) {
         return `${mainSegment.reps}x${(mainSegment.distance * 1609).toFixed(0)}m @ ${mainSegment.pace || 'Interval'} pace`;
       }
@@ -54,12 +60,12 @@ const TrainingStatusCard = ({
         return `${mainSegment.reps}x${mainSegment.duration}s hill repeats`;
       }
       
-      // Use structured description if available
+      // Use main segment description if available
       if (mainSegment?.description) {
         return mainSegment.description;
       }
       
-      // For other workout types, use the original description
+      // Fall back to basic description
       return workout.description || 'No description available';
     } catch (error) {
       console.error('Error parsing workout structure:', error);
@@ -79,14 +85,15 @@ const TrainingStatusCard = ({
       
       const structure = detailsData as WorkoutStructureJson;
       
+      // Only show structure preview if it adds meaningful information beyond the main description
+      const hasStructuredPhases = structure.warmup || structure.cooldown;
+      if (!hasStructuredPhases) return null;
+      
       return (
         <div className="mt-2 text-xs text-muted-foreground space-y-1">
           {structure.warmup && (
             <div>Warmup: {structure.warmup.duration}min @ {structure.warmup.pace} pace</div>
           )}
-          <div className="font-medium text-foreground">
-            Main: {getWorkoutDisplayDescription(workout)}
-          </div>
           {structure.cooldown && (
             <div>Cooldown: {structure.cooldown.duration}min @ {structure.cooldown.pace} pace</div>
           )}

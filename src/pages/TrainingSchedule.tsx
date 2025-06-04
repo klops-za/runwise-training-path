@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
+import { isValidWorkoutStructure, type WorkoutStructureJson } from '@/utils/workoutStructures';
 
 type Workout = Database['public']['Tables']['workouts']['Row'];
 type TrainingPlan = Database['public']['Tables']['training_plans']['Row'];
@@ -109,6 +110,53 @@ const TrainingSchedule = () => {
     } else {
       const distanceInKm = distanceInMiles * 1.60934;
       return `${distanceInKm.toFixed(1)} km`;
+    }
+  };
+
+  const getWorkoutDisplayDescription = (workout: Workout) => {
+    if (!workout.details_json) {
+      return workout.description || 'No description available';
+    }
+    
+    try {
+      const detailsData = workout.details_json;
+      
+      if (!isValidWorkoutStructure(detailsData)) {
+        return workout.description || 'No description available';
+      }
+      
+      const structure = detailsData as WorkoutStructureJson;
+      
+      // Prefer structured description over basic description
+      if (structure.description) {
+        return structure.description;
+      }
+      
+      const mainSegment = structure.main[0];
+      
+      // Format structured descriptions for specific workout types
+      if (workout.type === 'Interval' && mainSegment?.reps && mainSegment?.distance) {
+        return `${mainSegment.reps}x${(mainSegment.distance * 1609).toFixed(0)}m @ ${mainSegment.pace || 'Interval'} pace`;
+      }
+      
+      if (workout.type === 'Tempo' && mainSegment?.distance) {
+        return `${convertDistance(mainSegment.distance)} @ ${mainSegment.pace || 'Tempo'} pace`;
+      }
+      
+      if (workout.type === 'Hill' && mainSegment?.reps && mainSegment?.duration) {
+        return `${mainSegment.reps}x${mainSegment.duration}s hill repeats`;
+      }
+      
+      // Use main segment description if available
+      if (mainSegment?.description) {
+        return mainSegment.description;
+      }
+      
+      // Fall back to basic description
+      return workout.description || 'No description available';
+    } catch (error) {
+      console.error('Error parsing workout structure:', error);
+      return workout.description || 'No description available';
     }
   };
 
@@ -292,7 +340,7 @@ const TrainingSchedule = () => {
                         )}
                       </div>
 
-                      <p className="text-card-foreground mb-3">{workout.description || 'No description available'}</p>
+                      <p className="text-card-foreground mb-3">{getWorkoutDisplayDescription(workout)}</p>
 
                       <div className="flex items-center space-x-6 text-sm text-muted-foreground mb-3">
                         {workout.duration && (
