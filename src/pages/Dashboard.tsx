@@ -1,14 +1,19 @@
+
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Calendar, Target, TrendingUp, Settings, RefreshCw, User, Plus, Timer, Clock, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
-import { calculateTrainingPaces, formatPace } from '@/utils/paceCalculations';
+import WelcomeSection from '@/components/dashboard/WelcomeSection';
+import TrainingPlanGeneration from '@/components/dashboard/TrainingPlanGeneration';
+import StatsGrid from '@/components/dashboard/StatsGrid';
+import TrainingPacesCard from '@/components/dashboard/TrainingPacesCard';
+import TrainingStatusCard from '@/components/dashboard/TrainingStatusCard';
+import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
+import PlanStatusCard from '@/components/dashboard/PlanStatusCard';
+import { calculateTrainingPaces } from '@/utils/paceCalculations';
+import { Button } from '@/components/ui/button';
 import type { Database } from '@/integrations/supabase/types';
 
 type RunnerData = Database['public']['Tables']['runners']['Row'];
@@ -217,328 +222,63 @@ const Dashboard = () => {
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {displayName}! 👋
-          </h1>
-          <p className="text-muted-foreground">
-            {runnerData.race_goal && daysUntilRace ? (
-              <>You're training for a {runnerData.race_goal} in {daysUntilRace} days</>
-            ) : runnerData.race_goal ? (
-              <>You're training for a {runnerData.race_goal}</>
-            ) : (
-              <>Ready to start your training journey?</>
-            )}
-          </p>
-        </div>
+        <WelcomeSection 
+          displayName={displayName}
+          raceGoal={runnerData.race_goal}
+          daysUntilRace={daysUntilRace}
+        />
 
-        {/* Training Plan Generation Section */}
         {!trainingPlan && (
-          <Card className="mb-8 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
-            <CardHeader>
-              <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center">
-                <Plus className="h-5 w-5 mr-2" />
-                Generate Your Training Plan
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-blue-800 dark:text-blue-200 mb-4">
-                Ready to start training? Generate a personalized 16-week training plan based on your profile.
-              </p>
-              <Button 
-                onClick={generateTrainingPlan}
-                disabled={generatingPlan}
-                className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
-              >
-                {generatingPlan ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Generating Plan...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Generate Training Plan
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+          <TrainingPlanGeneration 
+            generatingPlan={generatingPlan}
+            onGenerateTrainingPlan={generateTrainingPlan}
+          />
         )}
 
-        {/* Stats Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
-                <Target className="h-4 w-4 mr-2 text-blue-600" />
-                Race Goal
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                {runnerData.race_goal || 'Not Set'}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {daysUntilRace ? `${daysUntilRace} days to go` : 'Set your race date'}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
-                <Calendar className="h-4 w-4 mr-2 text-orange-600" />
-                Training Progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                Week {currentWeek}/{totalWeeks}
-              </div>
-              <Progress value={progressPercentage} className="mt-2" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
-                <TrendingUp className="h-4 w-4 mr-2 text-blue-600" />
-                Weekly Mileage
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                {runnerData.weekly_mileage ? `${runnerData.weekly_mileage} ${runnerData.preferred_unit || 'mi'}` : 'Not Set'}
-              </div>
-              <p className="text-sm text-muted-foreground">Current target</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
-                <Target className="h-4 w-4 mr-2 text-orange-600" />
-                Fitness Score
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                {runnerData.fitness_score || 'Not Set'}
-              </div>
-              <p className="text-sm text-muted-foreground">Current fitness</p>
-            </CardContent>
-          </Card>
-        </div>
+        <StatsGrid 
+          runnerData={runnerData}
+          daysUntilRace={daysUntilRace}
+          currentWeek={currentWeek}
+          totalWeeks={totalWeeks}
+          progressPercentage={progressPercentage}
+        />
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Training Paces and Training Status */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Training Paces Card - Now First */}
             {runnerData.fitness_score && (
-              <Card className="border-green-100 dark:border-green-800">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-green-900 dark:text-green-100">
-                    <Timer className="mr-2 h-5 w-5 text-green-600 dark:text-green-400" />
-                    Your Training Paces
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                      <div className="text-sm text-muted-foreground mb-1">Interval Pace</div>
-                      <div className="text-lg font-semibold text-foreground">
-                        {formatPace(trainingPaces.intervalPace, paceUnit)}
-                      </div>
-                    </div>
-                    <div className="text-center p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                      <div className="text-sm text-muted-foreground mb-1">Tempo Pace</div>
-                      <div className="text-lg font-semibold text-foreground">
-                        {formatPace(trainingPaces.tempoPace, paceUnit)}
-                      </div>
-                    </div>
-                    <div className="text-center p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                      <div className="text-sm text-muted-foreground mb-1">Easy Pace</div>
-                      <div className="text-lg font-semibold text-foreground">
-                        {formatPace(trainingPaces.easyPace, paceUnit)}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-3 text-center">
-                    Calculated based on your fitness score of {runnerData.fitness_score}
-                  </p>
-                </CardContent>
-              </Card>
+              <TrainingPacesCard 
+                intervalPace={trainingPaces.intervalPace}
+                tempoPace={trainingPaces.tempoPace}
+                easyPace={trainingPaces.easyPace}
+                paceUnit={paceUnit}
+                fitnessScore={runnerData.fitness_score}
+              />
             )}
 
-            {/* Training Status Card - Now Second */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Training Status</span>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate('/schedule')}
-                    className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-950"
-                  >
-                    View Schedule
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {trainingPlan ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-                      <div>
-                        <div className="font-medium text-green-900 dark:text-green-100">Training Plan Active</div>
-                        <div className="text-sm text-green-700 dark:text-green-300">
-                          Started: {new Date(trainingPlan.start_date || '').toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div className="px-2 py-1 rounded-full text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                        ✓ Generated
-                      </div>
-                    </div>
-                    
-                    {/* This Week's Sessions */}
-                    {currentWeekWorkouts.length > 0 && (
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-foreground">This Week's Sessions (Week {currentWeek})</h4>
-                        <div className="space-y-2">
-                          {currentWeekWorkouts.slice(0, 3).map((workout) => (
-                            <div key={workout.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border">
-                              <div className="flex-1">
-                                <div className="font-medium text-sm text-foreground">{workout.type}</div>
-                                <div className="text-xs text-muted-foreground flex items-center space-x-3">
-                                  {workout.date && (
-                                    <span>{new Date(workout.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                                  )}
-                                  {workout.duration && (
-                                    <span className="flex items-center">
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      {workout.duration}min
-                                    </span>
-                                  )}
-                                  {workout.distance_target && (
-                                    <span className="flex items-center">
-                                      <MapPin className="h-3 w-3 mr-1" />
-                                      {convertDistance(workout.distance_target)}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                                {workout.status}
-                              </div>
-                            </div>
-                          ))}
-                          {currentWeekWorkouts.length > 3 && (
-                            <div className="text-center">
-                              <Button variant="outline" size="sm" onClick={() => navigate('/schedule')}>
-                                View All {currentWeekWorkouts.length} Sessions
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="text-sm text-muted-foreground">
-                      Your personalized {trainingPlan.race_type || 'running'} training plan is ready! 
-                      View your weekly schedule to see today's workout.
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No training plan generated yet.</p>
-                    <Button 
-                      onClick={generateTrainingPlan}
-                      disabled={generatingPlan}
-                      className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
-                    >
-                      {generatingPlan ? (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Generate Training Plan
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <TrainingStatusCard 
+              trainingPlan={trainingPlan}
+              currentWeekWorkouts={currentWeekWorkouts}
+              currentWeek={currentWeek}
+              generatingPlan={generatingPlan}
+              onGenerateTrainingPlan={generateTrainingPlan}
+              convertDistance={convertDistance}
+            />
           </div>
 
-          {/* Quick Actions */}
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  className="w-full justify-start bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
-                  onClick={() => navigate('/schedule')}
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  View Training Schedule
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => navigate('/profile')}
-                >
-                  <User className="mr-2 h-4 w-4" />
-                  Edit Profile
-                </Button>
-                
-                {trainingPlan && (
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={generateTrainingPlan}
-                    disabled={generatingPlan}
-                  >
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Regenerate Plan
-                  </Button>
-                )}
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => navigate('/knowledge')}
-                >
-                  <Target className="mr-2 h-4 w-4" />
-                  Knowledge Hub
-                </Button>
-              </CardContent>
-            </Card>
+            <QuickActionsCard 
+              trainingPlan={trainingPlan}
+              generatingPlan={generatingPlan}
+              onGenerateTrainingPlan={generateTrainingPlan}
+            />
 
-            {/* Plan Status */}
-            {trainingPlan && (
-              <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30">
-                <CardHeader>
-                  <CardTitle className="text-green-800 dark:text-green-200">Training Plan Active</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-green-700 dark:text-green-300">
-                    <p className="font-medium">Week {currentWeek} of {totalWeeks}</p>
-                    <p className="text-sm">
-                      Your {trainingPlan.race_type || 'running'} training plan is personalized 
-                      for your {runnerData.experience_level?.toLowerCase() || 'current'} level.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+            {trainingPlan && runnerData && (
+              <PlanStatusCard 
+                trainingPlan={trainingPlan}
+                currentWeek={currentWeek}
+                totalWeeks={totalWeeks}
+                runnerData={runnerData}
+              />
             )}
           </div>
         </div>
