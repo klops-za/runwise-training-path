@@ -13,59 +13,92 @@ export type Database = {
         Row: {
           age: number | null
           created_at: string
+          cross_training_preferences: string[] | null
           email: string
           experience_level:
             | Database["public"]["Enums"]["experience_level_type"]
             | null
+          first_name: string | null
           gender: Database["public"]["Enums"]["gender_type"] | null
-          height: number | null
+          height_cm: number | null
           id: string
+          injury_history: string | null
+          last_name: string | null
+          last_updated: string | null
           preferred_unit: Database["public"]["Enums"]["unit_type"] | null
           race_date: string | null
           race_goal: Database["public"]["Enums"]["race_type"] | null
-          training_days: string[] | null
+          recent_race_distance: Database["public"]["Enums"]["race_type"] | null
+          recent_race_time: string | null
+          training_days: number | null
+          training_intensity_preference:
+            | Database["public"]["Enums"]["intensity_type"]
+            | null
+          training_start_date: string | null
           updated_at: string
           vdot: number | null
           weekly_mileage: number | null
-          weight: number | null
+          weight_kg: number | null
         }
         Insert: {
           age?: number | null
           created_at?: string
+          cross_training_preferences?: string[] | null
           email: string
           experience_level?:
             | Database["public"]["Enums"]["experience_level_type"]
             | null
+          first_name?: string | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
-          height?: number | null
+          height_cm?: number | null
           id?: string
+          injury_history?: string | null
+          last_name?: string | null
+          last_updated?: string | null
           preferred_unit?: Database["public"]["Enums"]["unit_type"] | null
           race_date?: string | null
           race_goal?: Database["public"]["Enums"]["race_type"] | null
-          training_days?: string[] | null
+          recent_race_distance?: Database["public"]["Enums"]["race_type"] | null
+          recent_race_time?: string | null
+          training_days?: number | null
+          training_intensity_preference?:
+            | Database["public"]["Enums"]["intensity_type"]
+            | null
+          training_start_date?: string | null
           updated_at?: string
           vdot?: number | null
           weekly_mileage?: number | null
-          weight?: number | null
+          weight_kg?: number | null
         }
         Update: {
           age?: number | null
           created_at?: string
+          cross_training_preferences?: string[] | null
           email?: string
           experience_level?:
             | Database["public"]["Enums"]["experience_level_type"]
             | null
+          first_name?: string | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
-          height?: number | null
+          height_cm?: number | null
           id?: string
+          injury_history?: string | null
+          last_name?: string | null
+          last_updated?: string | null
           preferred_unit?: Database["public"]["Enums"]["unit_type"] | null
           race_date?: string | null
           race_goal?: Database["public"]["Enums"]["race_type"] | null
-          training_days?: string[] | null
+          recent_race_distance?: Database["public"]["Enums"]["race_type"] | null
+          recent_race_time?: string | null
+          training_days?: number | null
+          training_intensity_preference?:
+            | Database["public"]["Enums"]["intensity_type"]
+            | null
+          training_start_date?: string | null
           updated_at?: string
           vdot?: number | null
           weekly_mileage?: number | null
-          weight?: number | null
+          weight_kg?: number | null
         }
         Relationships: []
       }

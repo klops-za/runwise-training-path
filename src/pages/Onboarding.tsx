@@ -7,12 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, ArrowRight, User, Target, Calendar } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, ArrowRight, User, Target, Calendar, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { testDatabaseConnection } from '@/utils/debugDatabase';
 import type { Database } from '@/integrations/supabase/types';
 
 type RunnerInsert = Database['public']['Tables']['runners']['Insert'];
@@ -23,17 +23,25 @@ const Onboarding = () => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
     age: '',
     gender: '',
-    height: '',
-    weight: '',
+    height_cm: '',
+    weight_kg: '',
     experience_level: '',
     weekly_mileage: '',
-    training_days: [] as string[],
+    training_days: '',
     preferred_unit: 'mi',
+    vdot: '',
+    recent_race_distance: '',
+    recent_race_time: '',
     race_goal: '',
     race_date: '',
-    recent_race_time: ''
+    training_intensity_preference: '',
+    injury_history: '',
+    cross_training_preferences: [] as string[],
+    training_start_date: ''
   });
 
   // Unit conversion functions
@@ -88,15 +96,15 @@ const Onboarding = () => {
       const newUnit = value;
       
       // Convert existing values to new unit
-      const convertedHeight = convertHeight(formData.height, oldUnit, newUnit);
-      const convertedWeight = convertWeight(formData.weight, oldUnit, newUnit);
+      const convertedHeight = convertHeight(formData.height_cm, oldUnit, newUnit);
+      const convertedWeight = convertWeight(formData.weight_kg, oldUnit, newUnit);
       const convertedMileage = convertMileage(formData.weekly_mileage, oldUnit, newUnit);
       
       setFormData(prev => ({
         ...prev,
         preferred_unit: newUnit,
-        height: convertedHeight,
-        weight: convertedWeight,
+        height_cm: convertedHeight,
+        weight_kg: convertedWeight,
         weekly_mileage: convertedMileage
       }));
     } else {
@@ -104,19 +112,16 @@ const Onboarding = () => {
     }
   };
 
-  const handleTrainingDayChange = (day: string, checked: boolean) => {
+  const handleCrossTrainingChange = (activity: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      training_days: checked 
-        ? [...prev.training_days, day]
-        : prev.training_days.filter(d => d !== day)
+      cross_training_preferences: checked 
+        ? [...prev.cross_training_preferences, activity]
+        : prev.cross_training_preferences.filter(a => a !== activity)
     }));
   };
 
   const saveRunnerProfile = async () => {
-    // Run database test first
-    await testDatabaseConnection();
-    
     if (!user) {
       console.error('No authenticated user found');
       toast({
@@ -130,48 +135,36 @@ const Onboarding = () => {
     try {
       console.log('=== DEBUG: Starting profile save ===');
       console.log('User object:', user);
-      console.log('User ID:', user.id);
       console.log('Form data:', formData);
-      
-      // Check if user is properly authenticated
-      const { data: session, error: sessionError } = await supabase.auth.getSession();
-      console.log('Current session:', session);
-      console.log('Session error:', sessionError);
-      
-      if (!session.session) {
-        console.error('No active session found');
-        toast({
-          title: "Error",
-          description: "Your session has expired. Please log in again.",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      // Check current user from auth
-      const { data: currentUser, error: userError } = await supabase.auth.getUser();
-      console.log('Current user from auth:', currentUser);
-      console.log('User error:', userError);
       
       // Properly cast the data to match the database schema
       const profileData: RunnerInsert = {
         id: user.id,
         email: user.email || '',
+        first_name: formData.first_name || null,
+        last_name: formData.last_name || null,
         age: formData.age ? parseInt(formData.age) : null,
         gender: formData.gender ? (formData.gender as Database['public']['Enums']['gender_type']) : null,
-        height: formData.height ? parseFloat(formData.height) : null,
-        weight: formData.weight ? parseFloat(formData.weight) : null,
+        height_cm: formData.height_cm ? parseFloat(formData.height_cm) : null,
+        weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
         experience_level: formData.experience_level ? (formData.experience_level as Database['public']['Enums']['experience_level_type']) : null,
         weekly_mileage: formData.weekly_mileage ? parseFloat(formData.weekly_mileage) : null,
-        training_days: formData.training_days.length > 0 ? formData.training_days : null,
+        training_days: formData.training_days ? parseInt(formData.training_days) : null,
         preferred_unit: formData.preferred_unit as Database['public']['Enums']['unit_type'],
+        vdot: formData.vdot ? parseFloat(formData.vdot) : null,
+        recent_race_distance: formData.recent_race_distance ? (formData.recent_race_distance as Database['public']['Enums']['race_type']) : null,
+        recent_race_time: formData.recent_race_time || null,
         race_goal: formData.race_goal ? (formData.race_goal as Database['public']['Enums']['race_type']) : null,
         race_date: formData.race_date || null,
+        training_intensity_preference: formData.training_intensity_preference ? (formData.training_intensity_preference as Database['public']['Enums']['intensity_type']) : null,
+        injury_history: formData.injury_history || null,
+        cross_training_preferences: formData.cross_training_preferences.length > 0 ? formData.cross_training_preferences : null,
+        training_start_date: formData.training_start_date || null
       };
 
       console.log('=== Profile data to insert ===', profileData);
 
-      // First, let's try to check if a profile already exists
+      // Check if a profile already exists
       const { data: existingProfile, error: selectError } = await supabase
         .from('runners')
         .select('*')
@@ -181,7 +174,6 @@ const Onboarding = () => {
       console.log('Existing profile check:', existingProfile);
       console.log('Select error:', selectError);
 
-      // Let's try a simple insert first instead of upsert to see if that works
       let data, error;
       
       if (existingProfile) {
@@ -205,22 +197,12 @@ const Onboarding = () => {
         console.error('Error details:', error.details);
         console.error('Error hint:', error.hint);
         console.error('Error code:', error.code);
-        console.error('Full error object:', error);
         
-        // More specific error handling
-        if (error.code === '42501') {
-          toast({
-            title: "Authentication Error",
-            description: "There's an issue with database permissions. Please try logging out and back in, or contact support if the issue persists.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: `Failed to save your profile: ${error.message}`,
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Error",
+          description: `Failed to save your profile: ${error.message}`,
+          variant: "destructive",
+        });
         return false;
       }
 
@@ -238,7 +220,7 @@ const Onboarding = () => {
   };
 
   const handleNext = async () => {
-    if (currentStep < 3) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
       const success = await saveRunnerProfile();
@@ -265,19 +247,21 @@ const Onboarding = () => {
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
-        return formData.age && formData.gender && formData.height && formData.weight;
+        return formData.first_name && formData.last_name && formData.age && formData.gender;
       case 2:
-        return formData.experience_level && formData.training_days.length > 0;
+        return formData.height_cm && formData.weight_kg;
       case 3:
+        return formData.experience_level && formData.training_days;
+      case 4:
         return formData.race_goal && formData.race_date;
       default:
         return false;
     }
   };
 
-  const stepIcons = [User, Target, Calendar];
+  const stepIcons = [User, Activity, Target, Calendar];
   const StepIcon = stepIcons[currentStep - 1];
-  const trainingDayOptions = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const crossTrainingOptions = ['Swimming', 'Cycling', 'Yoga', 'Elliptical', 'None'];
 
   // Get unit labels based on preferred unit
   const heightLabel = formData.preferred_unit === 'mi' ? 'Height (inches)' : 'Height (cm)';
@@ -303,13 +287,13 @@ const Onboarding = () => {
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Step {currentStep} of 3</span>
-              <span className="text-sm text-gray-600">{Math.round((currentStep / 3) * 100)}% Complete</span>
+              <span className="text-sm text-gray-600">Step {currentStep} of 4</span>
+              <span className="text-sm text-gray-600">{Math.round((currentStep / 4) * 100)}% Complete</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-gradient-to-r from-blue-600 to-orange-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(currentStep / 3) * 100}%` }}
+                style={{ width: `${(currentStep / 4) * 100}%` }}
               ></div>
             </div>
           </div>
@@ -320,15 +304,37 @@ const Onboarding = () => {
                 <StepIcon className="h-8 w-8 text-blue-600" />
               </div>
               <CardTitle className="text-2xl text-gray-900">
-                {currentStep === 1 && "Tell us about yourself"}
-                {currentStep === 2 && "Your running experience"}
-                {currentStep === 3 && "Your race goals"}
+                {currentStep === 1 && "Personal Information"}
+                {currentStep === 2 && "Physical Details"}
+                {currentStep === 3 && "Running Experience"}
+                {currentStep === 4 && "Goals & Preferences"}
               </CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-6">
               {currentStep === 1 && (
                 <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="first_name">First Name</Label>
+                      <Input
+                        id="first_name"
+                        value={formData.first_name}
+                        onChange={(e) => handleInputChange('first_name', e.target.value)}
+                        placeholder="John"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="last_name">Last Name</Label>
+                      <Input
+                        id="last_name"
+                        value={formData.last_name}
+                        onChange={(e) => handleInputChange('last_name', e.target.value)}
+                        placeholder="Doe"
+                      />
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="age">Age</Label>
@@ -372,33 +378,64 @@ const Onboarding = () => {
                       </div>
                     </RadioGroup>
                   </div>
+                </div>
+              )}
 
+              {currentStep === 2 && (
+                <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="height">{heightLabel}</Label>
+                      <Label htmlFor="height_cm">{heightLabel}</Label>
                       <Input
-                        id="height"
+                        id="height_cm"
                         type="number"
-                        value={formData.height}
-                        onChange={(e) => handleInputChange('height', e.target.value)}
+                        value={formData.height_cm}
+                        onChange={(e) => handleInputChange('height_cm', e.target.value)}
                         placeholder={formData.preferred_unit === 'mi' ? "70" : "178"}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="weight">{weightLabel}</Label>
+                      <Label htmlFor="weight_kg">{weightLabel}</Label>
                       <Input
-                        id="weight"
+                        id="weight_kg"
                         type="number"
-                        value={formData.weight}
-                        onChange={(e) => handleInputChange('weight', e.target.value)}
+                        value={formData.weight_kg}
+                        onChange={(e) => handleInputChange('weight_kg', e.target.value)}
                         placeholder={formData.preferred_unit === 'mi' ? "150" : "68"}
                       />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="injury_history">Injury History (Optional)</Label>
+                    <Textarea
+                      id="injury_history"
+                      value={formData.injury_history}
+                      onChange={(e) => handleInputChange('injury_history', e.target.value)}
+                      placeholder="Describe any past injuries or physical limitations..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Cross-Training Preferences</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      {crossTrainingOptions.map((activity) => (
+                        <div key={activity} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={activity}
+                            checked={formData.cross_training_preferences.includes(activity)}
+                            onCheckedChange={(checked) => handleCrossTrainingChange(activity, checked as boolean)}
+                          />
+                          <Label htmlFor={activity}>{activity}</Label>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
               )}
 
-              {currentStep === 2 && (
+              {currentStep === 3 && (
                 <div className="space-y-4">
                   <div>
                     <Label>Running Experience Level</Label>
@@ -426,49 +463,88 @@ const Onboarding = () => {
                     </RadioGroup>
                   </div>
 
-                  <div>
-                    <Label htmlFor="weekly_mileage">{mileageLabel}</Label>
-                    <Input
-                      id="weekly_mileage"
-                      type="number"
-                      value={formData.weekly_mileage}
-                      onChange={(e) => handleInputChange('weekly_mileage', e.target.value)}
-                      placeholder={formData.preferred_unit === 'mi' ? "25" : "40"}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Training Days</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      {trainingDayOptions.map((day) => (
-                        <div key={day} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={day}
-                            checked={formData.training_days.includes(day)}
-                            onCheckedChange={(checked) => handleTrainingDayChange(day, checked as boolean)}
-                          />
-                          <Label htmlFor={day}>{day}</Label>
-                        </div>
-                      ))}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="weekly_mileage">{mileageLabel}</Label>
+                      <Input
+                        id="weekly_mileage"
+                        type="number"
+                        value={formData.weekly_mileage}
+                        onChange={(e) => handleInputChange('weekly_mileage', e.target.value)}
+                        placeholder={formData.preferred_unit === 'mi' ? "25" : "40"}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="training_days">Training Days per Week</Label>
+                      <Input
+                        id="training_days"
+                        type="number"
+                        min="1"
+                        max="7"
+                        value={formData.training_days}
+                        onChange={(e) => handleInputChange('training_days', e.target.value)}
+                        placeholder="4"
+                      />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="recent_race_time">Recent Race Time (optional)</Label>
+                    <Label htmlFor="training_intensity_preference">Training Intensity Preference</Label>
+                    <Select value={formData.training_intensity_preference} onValueChange={(value) => handleInputChange('training_intensity_preference', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select intensity preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Low">Low - Focus on easy runs</SelectItem>
+                        <SelectItem value="Moderate">Moderate - Balanced approach</SelectItem>
+                        <SelectItem value="High">High - Intense training</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="recent_race_distance">Recent Race Distance (Optional)</Label>
+                      <Select value={formData.recent_race_distance} onValueChange={(value) => handleInputChange('recent_race_distance', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select distance" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5K">5K</SelectItem>
+                          <SelectItem value="10K">10K</SelectItem>
+                          <SelectItem value="Half Marathon">Half Marathon</SelectItem>
+                          <SelectItem value="Marathon">Marathon</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="recent_race_time">Recent Race Time (Optional)</Label>
+                      <Input
+                        id="recent_race_time"
+                        value={formData.recent_race_time}
+                        onChange={(e) => handleInputChange('recent_race_time', e.target.value)}
+                        placeholder="e.g., 25:00 or 52:30"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="vdot">VDOT (Optional)</Label>
                     <Input
-                      id="recent_race_time"
-                      value={formData.recent_race_time}
-                      onChange={(e) => handleInputChange('recent_race_time', e.target.value)}
-                      placeholder="e.g., 5K in 25:00 or 10K in 52:00"
+                      id="vdot"
+                      type="number"
+                      value={formData.vdot}
+                      onChange={(e) => handleInputChange('vdot', e.target.value)}
+                      placeholder="45"
                     />
                     <p className="text-sm text-gray-500 mt-1">
-                      This helps us calculate your VDOT for better pacing recommendations
+                      If you don't know your VDOT, we can calculate it from your recent race time
                     </p>
                   </div>
                 </div>
               )}
 
-              {currentStep === 3 && (
+              {currentStep === 4 && (
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="race_goal">Target Race Distance</Label>
@@ -485,21 +561,32 @@ const Onboarding = () => {
                     </Select>
                   </div>
 
-                  <div>
-                    <Label htmlFor="race_date">Target Race Date</Label>
-                    <Input
-                      id="race_date"
-                      type="date"
-                      value={formData.race_date}
-                      onChange={(e) => handleInputChange('race_date', e.target.value)}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="race_date">Target Race Date</Label>
+                      <Input
+                        id="race_date"
+                        type="date"
+                        value={formData.race_date}
+                        onChange={(e) => handleInputChange('race_date', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="training_start_date">Training Start Date (Optional)</Label>
+                      <Input
+                        id="training_start_date"
+                        type="date"
+                        value={formData.training_start_date}
+                        onChange={(e) => handleInputChange('training_start_date', e.target.value)}
+                      />
+                    </div>
                   </div>
 
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <h4 className="font-semibold text-blue-900 mb-2">Your Training Plan Preview</h4>
                     <p className="text-blue-700 text-sm">
                       Based on your inputs, we'll create a personalized {formData.race_goal} training plan 
-                      with {formData.training_days.length} training days per week, starting immediately and 
+                      with {formData.training_days} training days per week, {formData.training_intensity_preference?.toLowerCase()} intensity, 
                       leading up to your race on {formData.race_date ? new Date(formData.race_date).toLocaleDateString() : '[selected date]'}.
                     </p>
                   </div>
@@ -521,7 +608,7 @@ const Onboarding = () => {
                   disabled={!isStepValid()}
                   className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white flex items-center"
                 >
-                  {currentStep === 3 ? 'Create Profile' : 'Next'}
+                  {currentStep === 4 ? 'Create Profile' : 'Next'}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
