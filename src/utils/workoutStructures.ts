@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -17,10 +18,16 @@ export interface WorkoutSegment {
   segments?: WorkoutSegment[];
 }
 
+export interface WorkoutPhaseSegment {
+  duration?: number;
+  pace?: string;
+  description?: string;
+}
+
 export interface WorkoutStructureJson {
-  warmup?: number;
+  warmup?: WorkoutPhaseSegment;
   main: WorkoutSegment[];
-  cooldown?: number;
+  cooldown?: WorkoutPhaseSegment;
   description?: string;
   min_duration?: number;
   min_distance?: number;
