@@ -36,15 +36,15 @@ export interface WorkoutStructureJson {
 
 // Standardized pace zones for consistency
 export const PACE_ZONES = {
-  RECOVERY: 'Recovery',
-  EASY: 'Easy',
-  AEROBIC: 'Aerobic',
-  TEMPO: 'Tempo',
-  THRESHOLD: 'Threshold',
-  GOAL: 'Goal',
-  INTERVAL: '5K',
-  MILE: 'Mile',
-  VO2MAX: 'VO2Max'
+  RECOVERY: 'recovery',
+  EASY: 'easy',
+  AEROBIC: 'aerobic',
+  TEMPO: 'tempo',
+  THRESHOLD: 'threshold',
+  GOAL: 'goal',
+  INTERVAL: 'interval',
+  MILE: 'mile',
+  VO2MAX: 'vo2max'
 } as const;
 
 // Standardized effort levels for consistency
@@ -85,8 +85,7 @@ export const getWorkoutStructure = async (
 export const generateWorkoutDescription = (
   workoutType: WorkoutType,
   structureJson: WorkoutStructureJson,
-  distance?: number,
-  duration?: number
+  convertDistance?: (distance: number) => string
 ): string => {
   // Use description from structure if available
   if (structureJson.description) {
@@ -98,36 +97,51 @@ export const generateWorkoutDescription = (
   switch (workoutType) {
     case 'Interval':
       if (mainSegment?.reps && mainSegment?.distance) {
-        return `${mainSegment.reps}x${mainSegment.distance * 1609}m @ ${mainSegment.pace || PACE_ZONES.INTERVAL} pace with ${mainSegment.rest || 90}s rest`;
+        const distanceInMeters = (mainSegment.distance * 1609).toFixed(0);
+        const restTime = mainSegment.rest || 90;
+        return `${mainSegment.reps}x${distanceInMeters}m @ ${mainSegment.pace || PACE_ZONES.INTERVAL} pace with ${restTime}s rest`;
       }
       return mainSegment?.description || 'Interval training session';
     
     case 'Tempo':
       if (mainSegment?.distance) {
-        return `${mainSegment.distance} mile tempo run at ${EFFORT_LEVELS.COMFORTABLE_HARD.toLowerCase()} effort`;
+        const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} miles`;
+        return `${distanceStr} @ ${mainSegment.pace || PACE_ZONES.TEMPO} pace`;
       }
       return mainSegment?.description || 'Tempo run at threshold pace';
     
     case 'Hill':
       if (mainSegment?.reps && mainSegment?.duration) {
-        return `${mainSegment.reps}x${mainSegment.duration}s hill repeats with ${mainSegment.rest || 90}s recovery`;
+        const restTime = mainSegment.rest || 120;
+        return `${mainSegment.reps}x${mainSegment.duration}s hill repeats @ ${mainSegment.effort || EFFORT_LEVELS.HARD} effort with ${restTime}s recovery`;
       }
       return mainSegment?.description || 'Hill repeat session';
     
     case 'Long':
       if (mainSegment?.segments && mainSegment.segments.length > 1) {
-        return `${distance || 'Long'} mile run with varied pace segments`;
+        return `Long run with varied pace segments`;
+      } else if (mainSegment?.distance) {
+        const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} miles`;
+        return `${distanceStr} long run @ ${mainSegment.pace || PACE_ZONES.EASY} pace`;
       }
       return mainSegment?.description || 'Long endurance run';
     
     case 'Easy':
+      if (mainSegment?.distance) {
+        const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} miles`;
+        return `${distanceStr} easy run @ ${mainSegment.pace || PACE_ZONES.EASY} pace`;
+      }
       return mainSegment?.description || `Easy run at ${EFFORT_LEVELS.EASY.toLowerCase()} pace`;
     
     case 'Recovery':
+      if (mainSegment?.distance) {
+        const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} miles`;
+        return `${distanceStr} recovery run @ ${mainSegment.pace || PACE_ZONES.RECOVERY} pace`;
+      }
       return mainSegment?.description || `Recovery run at ${EFFORT_LEVELS.VERY_EASY.toLowerCase()} pace`;
     
     case 'Cross-training':
-      return mainSegment?.description || 'Cross-training activity';
+      return mainSegment?.description || structureJson.description || 'Cross-training activity';
     
     default:
       return 'Training run';
@@ -136,7 +150,7 @@ export const generateWorkoutDescription = (
 
 export const calculateWorkoutDistance = (
   structureJson: WorkoutStructureJson,
-  baseDistance: number
+  baseDistance?: number
 ): number => {
   // Use min_distance from structure if available
   if (structureJson.min_distance) {
@@ -158,7 +172,7 @@ export const calculateWorkoutDistance = (
     const segmentDistance = mainSegment.segments.reduce((sum, segment) => 
       sum + (segment.distance || 0), 0
     );
-    return segmentDistance > 0 ? segmentDistance : baseDistance;
+    return segmentDistance > 0 ? segmentDistance : (baseDistance || 3);
   }
   
   // Use distance from main segment if available
@@ -167,12 +181,12 @@ export const calculateWorkoutDistance = (
   }
   
   // Fall back to base distance
-  return baseDistance;
+  return baseDistance || 3;
 };
 
 export const calculateWorkoutDuration = (
   structureJson: WorkoutStructureJson,
-  baseDuration: number
+  baseDuration?: number
 ): number => {
   // Use min_duration from structure if available
   if (structureJson.min_duration) {
@@ -196,7 +210,7 @@ export const calculateWorkoutDuration = (
   }
   
   // Fall back to base duration
-  return baseDuration;
+  return baseDuration || 30;
 };
 
 export const isValidWorkoutStructure = (data: any): data is WorkoutStructureJson => {

@@ -6,7 +6,7 @@ import { Calendar, Play, Plus, RefreshCw, CheckCircle, Circle, Clock, MapPin } f
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
-import { isValidWorkoutStructure, type WorkoutStructureJson, PACE_ZONES } from '@/utils/workoutStructures';
+import { isValidWorkoutStructure, type WorkoutStructureJson, generateWorkoutDescription } from '@/utils/workoutStructures';
 
 type TrainingPlan = Database['public']['Tables']['training_plans']['Row'];
 type Workout = Database['public']['Tables']['workouts']['Row'];
@@ -46,41 +46,14 @@ const TrainingStatusCard = ({
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // Create unified display format
-      const phases: string[] = [];
+      // Use the new unified description generator
+      const generatedDescription = generateWorkoutDescription(
+        workout.type || 'Easy', 
+        structure, 
+        convertDistance
+      );
       
-      // Add warmup if present
-      if (structure.warmup) {
-        phases.push(`Warmup: ${structure.warmup.duration}min @ ${structure.warmup.pace || 'easy'} pace`);
-      }
-      
-      // Add main workout
-      const mainSegment = structure.main[0];
-      if (mainSegment) {
-        if (workout.type === 'Interval' && mainSegment?.reps && mainSegment?.distance) {
-          phases.push(`${mainSegment.reps}x${(mainSegment.distance * 1609).toFixed(0)}m @ ${mainSegment.pace || 'interval'} pace`);
-        } else if (workout.type === 'Tempo' && mainSegment?.distance) {
-          phases.push(`${convertDistance(mainSegment.distance)} @ ${mainSegment.pace || 'tempo'} pace`);
-        } else if (workout.type === 'Hill' && mainSegment?.reps && mainSegment?.duration) {
-          phases.push(`${mainSegment.reps}x${mainSegment.duration}s hill repeats`);
-        } else if (mainSegment?.distance) {
-          phases.push(`${convertDistance(mainSegment.distance)} @ ${mainSegment.pace || 'easy'} pace`);
-        } else if (mainSegment?.description) {
-          phases.push(mainSegment.description);
-        }
-      }
-      
-      // Add cooldown if present
-      if (structure.cooldown) {
-        phases.push(`Cooldown: ${structure.cooldown.duration}min @ ${structure.cooldown.pace || 'easy'} pace`);
-      }
-      
-      // Return unified description or fall back
-      if (phases.length > 0) {
-        return phases.join('\n');
-      }
-      
-      return structure.description || workout.description || 'No description available';
+      return generatedDescription || workout.description || 'No description available';
     } catch (error) {
       console.error('Error parsing workout structure:', error);
       return workout.description || 'No description available';
@@ -229,7 +202,7 @@ const TrainingStatusCard = ({
                         )}
                       </div>
 
-                      <div className="text-card-foreground mb-3 whitespace-pre-line">{getWorkoutDisplayDescription(workout)}</div>
+                      <div className="text-card-foreground mb-3">{getWorkoutDisplayDescription(workout)}</div>
 
                       <div className="flex items-center space-x-6 text-sm text-muted-foreground mb-3">
                         {workout.duration && (
