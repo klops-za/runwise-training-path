@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Target, Zap } from 'lucide-react';
@@ -22,69 +21,74 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
     }
   };
 
+  const isValidWorkoutStructure = (data: any): data is WorkoutStructureJson => {
+    return (
+      typeof data === 'object' &&
+      data !== null &&
+      !Array.isArray(data) &&
+      'main' in data &&
+      Array.isArray(data.main)
+    );
+  };
+
   const renderStructuredWorkout = () => {
     if (!workout.details_json) return null;
     
     try {
-      // Safe type checking and casting
+      // Safe type checking with proper validation
       const detailsData = workout.details_json;
       
-      // Check if it's an object and has the required 'main' property
-      if (typeof detailsData === 'object' && 
-          detailsData !== null && 
-          !Array.isArray(detailsData) &&
-          'main' in detailsData) {
-        
-        const structure = detailsData as WorkoutStructureJson;
-        
-        return (
-          <div className="mt-4 space-y-3">
-            {structure.warmup && (
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Target className="h-4 w-4 mr-2" />
-                Warmup: {structure.warmup} minutes
-              </div>
-            )}
-            
-            <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
-              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Main Workout</h4>
-              {structure.main.map((segment, index) => (
-                <div key={index} className="text-sm text-blue-800 dark:text-blue-200">
-                  {segment.reps && segment.distance && (
-                    <p>{segment.reps}x{(segment.distance * 1609).toFixed(0)}m @ {segment.pace} pace</p>
-                  )}
-                  {segment.reps && segment.duration && (
-                    <p>{segment.reps}x{segment.duration}s @ {segment.effort} effort</p>
-                  )}
-                  {segment.distance && !segment.reps && (
-                    <p>{convertDistance(segment.distance)} @ {segment.pace} pace</p>
-                  )}
-                  {segment.rest && <p className="text-xs">Rest: {segment.rest}s between reps</p>}
-                  {segment.description && <p className="text-xs italic mt-1">{segment.description}</p>}
-                  {segment.segments && (
-                    <div className="ml-4 mt-2 space-y-1">
-                      {segment.segments.map((subsegment, subIndex) => (
-                        <p key={subIndex} className="text-xs">
-                          {subsegment.distance && `${convertDistance(subsegment.distance)} @ ${subsegment.pace} pace`}
-                        </p>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            
-            {structure.cooldown && (
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Target className="h-4 w-4 mr-2" />
-                Cooldown: {structure.cooldown} minutes
-              </div>
-            )}
-          </div>
-        );
+      if (!isValidWorkoutStructure(detailsData)) {
+        return null;
       }
       
-      return null;
+      const structure = detailsData as WorkoutStructureJson;
+      
+      return (
+        <div className="mt-4 space-y-3">
+          {structure.warmup && (
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Target className="h-4 w-4 mr-2" />
+              Warmup: {structure.warmup} minutes
+            </div>
+          )}
+          
+          <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
+            <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Main Workout</h4>
+            {structure.main.map((segment, index) => (
+              <div key={index} className="text-sm text-blue-800 dark:text-blue-200">
+                {segment.reps && segment.distance && (
+                  <p>{segment.reps}x{(segment.distance * 1609).toFixed(0)}m @ {segment.pace} pace</p>
+                )}
+                {segment.reps && segment.duration && (
+                  <p>{segment.reps}x{segment.duration}s @ {segment.effort} effort</p>
+                )}
+                {segment.distance && !segment.reps && (
+                  <p>{convertDistance(segment.distance)} @ {segment.pace} pace</p>
+                )}
+                {segment.rest && <p className="text-xs">Rest: {segment.rest}s between reps</p>}
+                {segment.description && <p className="text-xs italic mt-1">{segment.description}</p>}
+                {segment.segments && (
+                  <div className="ml-4 mt-2 space-y-1">
+                    {segment.segments.map((subsegment, subIndex) => (
+                      <p key={subIndex} className="text-xs">
+                        {subsegment.distance && `${convertDistance(subsegment.distance)} @ ${subsegment.pace} pace`}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {structure.cooldown && (
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Target className="h-4 w-4 mr-2" />
+              Cooldown: {structure.cooldown} minutes
+            </div>
+          )}
+        </div>
+      );
     } catch (error) {
       console.error('Error parsing workout structure:', error);
       return null;
