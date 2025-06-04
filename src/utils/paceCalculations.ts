@@ -24,6 +24,16 @@ export const calculateTrainingPaces = (fitnessScore: number) => {
   const easyDenominator = 29.54 + 5.000663 * easyFitnessAdjusted - 0.007546 * Math.pow(easyFitnessAdjusted, 2);
   const easyPace = (1 / easyDenominator) * 1000.344 / 1440;
 
+  console.log('Pace calculations:', {
+    fitnessScore,
+    intervalPace,
+    tempoPace,
+    easyPace,
+    intervalDenominator,
+    tempoDenominator,
+    easyDenominator
+  });
+
   return {
     intervalPace: intervalPace,
     tempoPace: tempoPace,
@@ -32,10 +42,11 @@ export const calculateTrainingPaces = (fitnessScore: number) => {
 };
 
 export const formatPace = (pace: number | null, unit: string = 'km'): string => {
-  if (!pace) return 'N/A';
+  if (!pace || pace <= 0) return 'N/A';
   
-  // Convert pace to minutes per km/mile
-  const paceMinutesPerUnit = pace;
+  // Convert pace from fraction of day to minutes per unit
+  // pace is currently in fraction of day, we need minutes per km/mile
+  const paceMinutesPerUnit = pace * 1440; // Convert from fraction of day to minutes
   const minutes = Math.floor(paceMinutesPerUnit);
   const seconds = Math.round((paceMinutesPerUnit - minutes) * 60);
   
