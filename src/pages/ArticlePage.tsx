@@ -272,8 +272,19 @@ const ArticlePage = () => {
 
           {/* Article Content */}
           <Card>
-            <CardContent className="p-8">
-              <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-li:text-foreground prose-a:text-blue-600 dark:prose-a:text-blue-400">
+            <CardContent className="p-8 md:p-12">
+              <div className="prose prose-lg prose-slate max-w-none dark:prose-invert 
+                            prose-headings:font-bold prose-headings:text-foreground prose-headings:mb-6 prose-headings:mt-8
+                            prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl 
+                            prose-p:text-foreground prose-p:leading-relaxed prose-p:mb-6
+                            prose-strong:text-foreground prose-strong:font-semibold
+                            prose-em:text-foreground 
+                            prose-li:text-foreground prose-li:mb-2
+                            prose-ul:mb-6 prose-ol:mb-6
+                            prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+                            prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-6 prose-blockquote:italic
+                            prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-2 prose-code:py-1 prose-code:rounded
+                            first:prose-p:mt-0">
                 <div 
                   dangerouslySetInnerHTML={{ 
                     __html: parseMarkdown(article.content)
