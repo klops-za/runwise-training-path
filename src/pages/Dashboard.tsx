@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, Target, TrendingUp, Settings, RefreshCw, User } from 'lucide-react';
+import { Calendar, Target, TrendingUp, Settings, RefreshCw, User, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,27 +12,31 @@ import Navigation from '@/components/Navigation';
 import type { Database } from '@/integrations/supabase/types';
 
 type RunnerData = Database['public']['Tables']['runners']['Row'];
+type TrainingPlan = Database['public']['Tables']['training_plans']['Row'];
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [generatingPlan, setGeneratingPlan] = useState(false);
   const [runnerData, setRunnerData] = useState<RunnerData | null>(null);
+  const [trainingPlan, setTrainingPlan] = useState<TrainingPlan | null>(null);
 
   useEffect(() => {
-    const fetchRunnerData = async () => {
+    const fetchData = async () => {
       if (!user) return;
 
       try {
-        const { data: runner, error } = await supabase
+        // Fetch runner data
+        const { data: runner, error: runnerError } = await supabase
           .from('runners')
           .select('*')
           .eq('id', user.id)
           .single();
 
-        if (error) {
-          console.error('Error fetching runner data:', error);
+        if (runnerError) {
+          console.error('Error fetching runner data:', runnerError);
           toast({
             title: "Error",
             description: "Failed to load your profile data.",
@@ -42,15 +46,82 @@ const Dashboard = () => {
         }
 
         setRunnerData(runner);
+
+        // Fetch existing training plan
+        const { data: plan, error: planError } = await supabase
+          .from('training_plans')
+          .select('*')
+          .eq('runner_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (planError) {
+          console.error('Error fetching training plan:', planError);
+        } else {
+          setTrainingPlan(plan);
+        }
       } catch (error) {
-        console.error('Unexpected error fetching runner data:', error);
+        console.error('Unexpected error:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRunnerData();
+    fetchData();
   }, [user, toast]);
+
+  const generateTrainingPlan = async () => {
+    if (!user || !runnerData) return;
+
+    setGeneratingPlan(true);
+    try {
+      console.log('Generating training plan for user:', user.id);
+      
+      const { data, error } = await supabase.rpc('generate_training_plan', {
+        runner_uuid: user.id
+      });
+
+      if (error) {
+        console.error('Error generating training plan:', error);
+        toast({
+          title: "Error",
+          description: "Failed to generate training plan. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Training plan generated successfully:', data);
+      
+      // Fetch the newly created training plan
+      const { data: newPlan, error: fetchError } = await supabase
+        .from('training_plans')
+        .select('*')
+        .eq('id', data)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching new training plan:', fetchError);
+      } else {
+        setTrainingPlan(newPlan);
+      }
+
+      toast({
+        title: "Success",
+        description: "Your personalized training plan has been generated!",
+      });
+    } catch (error) {
+      console.error('Unexpected error generating training plan:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingPlan(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -90,20 +161,13 @@ const Dashboard = () => {
     ? Math.ceil((new Date(runnerData.race_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))
     : null;
 
-  // Calculate training progress (mock calculation for now)
-  const weeksElapsed = runnerData.training_start_date 
-    ? Math.floor((new Date().getTime() - new Date(runnerData.training_start_date).getTime()) / (1000 * 3600 * 24 * 7))
+  // Calculate training progress
+  const weeksElapsed = trainingPlan?.start_date 
+    ? Math.floor((new Date().getTime() - new Date(trainingPlan.start_date).getTime()) / (1000 * 3600 * 24 * 7))
     : 0;
   const totalWeeks = 16; // Standard training plan length
-  const currentWeek = Math.min(weeksElapsed + 1, totalWeeks);
+  const currentWeek = Math.min(Math.max(weeksElapsed + 1, 1), totalWeeks);
   const progressPercentage = (currentWeek / totalWeeks) * 100;
-
-  // Mock recent workouts (will be replaced with real data from training plans later)
-  const recentWorkouts = [
-    { date: "2024-01-15", type: "Easy Run", distance: "5 miles", status: "completed" },
-    { date: "2024-01-13", type: "Tempo Run", distance: "4 miles", status: "completed" },
-    { date: "2024-01-11", type: "Long Run", distance: "8 miles", status: "completed" }
-  ];
 
   const displayName = runnerData.first_name 
     ? `${runnerData.first_name}${runnerData.last_name ? ' ' + runnerData.last_name : ''}`
@@ -129,6 +193,40 @@ const Dashboard = () => {
             )}
           </p>
         </div>
+
+        {/* Training Plan Generation Section */}
+        {!trainingPlan && (
+          <Card className="mb-8 border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="text-blue-900 flex items-center">
+                <Plus className="h-5 w-5 mr-2" />
+                Generate Your Training Plan
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-blue-800 mb-4">
+                Ready to start training? Generate a personalized 16-week training plan based on your profile.
+              </p>
+              <Button 
+                onClick={generateTrainingPlan}
+                disabled={generatingPlan}
+                className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
+              >
+                {generatingPlan ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Generating Plan...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Generate Training Plan
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -196,40 +294,63 @@ const Dashboard = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Current Week Overview */}
+          {/* Training Plan Status */}
           <div className="lg:col-span-2">
             <Card className="border-blue-100">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>This Week's Training</span>
+                  <span>Training Status</span>
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => navigate('/schedule')}
                     className="text-blue-600 border-blue-200 hover:bg-blue-50"
                   >
-                    View Full Schedule
+                    View Schedule
                   </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentWorkouts.map((workout, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                {trainingPlan ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                       <div>
-                        <div className="font-medium text-gray-900">{workout.type}</div>
-                        <div className="text-sm text-gray-600">{workout.distance} • {workout.date}</div>
+                        <div className="font-medium text-green-900">Training Plan Active</div>
+                        <div className="text-sm text-green-700">
+                          Started: {new Date(trainingPlan.start_date || '').toLocaleDateString()}
+                        </div>
                       </div>
-                      <div className={`px-2 py-1 rounded-full text-xs ${
-                        workout.status === 'completed' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {workout.status === 'completed' ? '✓ Completed' : 'Scheduled'}
+                      <div className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        ✓ Generated
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="text-sm text-gray-600">
+                      Your personalized {trainingPlan.race_type || 'running'} training plan is ready! 
+                      View your weekly schedule to see today's workout.
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 mb-4">No training plan generated yet.</p>
+                    <Button 
+                      onClick={generateTrainingPlan}
+                      disabled={generatingPlan}
+                      className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
+                    >
+                      {generatingPlan ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Generate Training Plan
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -258,13 +379,17 @@ const Dashboard = () => {
                   Edit Profile
                 </Button>
                 
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Recalibrate Plan
-                </Button>
+                {trainingPlan && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={generateTrainingPlan}
+                    disabled={generatingPlan}
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Regenerate Plan
+                  </Button>
+                )}
                 
                 <Button 
                   variant="outline" 
@@ -277,18 +402,18 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Recent Achievement */}
-            {runnerData.weekly_mileage && (
+            {/* Plan Status */}
+            {trainingPlan && (
               <Card className="border-green-100 bg-green-50">
                 <CardHeader>
-                  <CardTitle className="text-green-800">Profile Complete!</CardTitle>
+                  <CardTitle className="text-green-800">Training Plan Active</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-green-700">
-                    <p className="font-medium">Ready to Train!</p>
+                    <p className="font-medium">Week {currentWeek} of {totalWeeks}</p>
                     <p className="text-sm">
-                      Your profile is set up for {runnerData.race_goal || 'running'} training. 
-                      {runnerData.weekly_mileage && ` Current target: ${runnerData.weekly_mileage} ${runnerData.preferred_unit || 'mi'}/week.`}
+                      Your {trainingPlan.race_type || 'running'} training plan is personalized 
+                      for your {runnerData.experience_level?.toLowerCase() || 'current'} level.
                     </p>
                   </div>
                 </CardContent>

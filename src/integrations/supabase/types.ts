@@ -195,37 +195,49 @@ export type Database = {
           created_at: string
           date: string | null
           description: string | null
+          distance_target: number | null
           duration: number | null
           id: string
           intensity: Database["public"]["Enums"]["intensity_type"] | null
+          notes: string | null
+          pace_target: string | null
           plan_id: string
           status: Database["public"]["Enums"]["workout_status_type"] | null
           type: Database["public"]["Enums"]["workout_type"] | null
           updated_at: string
+          week_number: number | null
         }
         Insert: {
           created_at?: string
           date?: string | null
           description?: string | null
+          distance_target?: number | null
           duration?: number | null
           id?: string
           intensity?: Database["public"]["Enums"]["intensity_type"] | null
+          notes?: string | null
+          pace_target?: string | null
           plan_id: string
           status?: Database["public"]["Enums"]["workout_status_type"] | null
           type?: Database["public"]["Enums"]["workout_type"] | null
           updated_at?: string
+          week_number?: number | null
         }
         Update: {
           created_at?: string
           date?: string | null
           description?: string | null
+          distance_target?: number | null
           duration?: number | null
           id?: string
           intensity?: Database["public"]["Enums"]["intensity_type"] | null
+          notes?: string | null
+          pace_target?: string | null
           plan_id?: string
           status?: Database["public"]["Enums"]["workout_status_type"] | null
           type?: Database["public"]["Enums"]["workout_type"] | null
           updated_at?: string
+          week_number?: number | null
         }
         Relationships: [
           {
@@ -242,7 +254,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_training_plan: {
+        Args: { runner_uuid: string }
+        Returns: string
+      }
+      get_current_training_week: {
+        Args: { start_date: string }
+        Returns: number
+      }
     }
     Enums: {
       experience_level_type: "Novice" | "Recreational" | "Competitive" | "Elite"
