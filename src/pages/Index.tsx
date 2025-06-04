@@ -51,15 +51,15 @@ const Index = () => {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   // This component will only render for non-authenticated users
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
       <div className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
@@ -69,51 +69,51 @@ const Index = () => {
               RunWise
             </h1>
           </div>
-          <p className="text-2xl text-gray-700 mb-4">Your Intelligent Running Companion</p>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-2xl text-foreground mb-4">Your Intelligent Running Companion</p>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Train smarter for your next 5K, 10K, Half Marathon, or Marathon with personalized plans that adapt to your progress.
           </p>
         </div>
 
         {/* Features */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          <Card className="border-blue-100 hover:shadow-lg transition-shadow">
+          <Card className="border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <Target className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle className="text-blue-900">Personalized Plans</CardTitle>
+              <CardTitle className="text-blue-900 dark:text-blue-100">Personalized Plans</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 text-center">Tailored training plans based on your fitness level, goals, and schedule.</p>
+              <p className="text-muted-foreground text-center">Tailored training plans based on your fitness level, goals, and schedule.</p>
             </CardContent>
           </Card>
 
-          <Card className="border-orange-100 hover:shadow-lg transition-shadow">
+          <Card className="border-orange-200 dark:border-orange-800 hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <Calendar className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-              <CardTitle className="text-orange-900">Smart Scheduling</CardTitle>
+              <CardTitle className="text-orange-900 dark:text-orange-100">Smart Scheduling</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 text-center">Flexible scheduling that adapts to your life and training preferences.</p>
+              <p className="text-muted-foreground text-center">Flexible scheduling that adapts to your life and training preferences.</p>
             </CardContent>
           </Card>
 
-          <Card className="border-blue-100 hover:shadow-lg transition-shadow">
+          <Card className="border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <Trophy className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle className="text-blue-900">Race Ready</CardTitle>
+              <CardTitle className="text-blue-900 dark:text-blue-100">Race Ready</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 text-center">Proven training methods to get you race-ready for any distance.</p>
+              <p className="text-muted-foreground text-center">Proven training methods to get you race-ready for any distance.</p>
             </CardContent>
           </Card>
 
-          <Card className="border-orange-100 hover:shadow-lg transition-shadow">
+          <Card className="border-orange-200 dark:border-orange-800 hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <BarChart3 className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-              <CardTitle className="text-orange-900">Progress Tracking</CardTitle>
+              <CardTitle className="text-orange-900 dark:text-orange-100">Progress Tracking</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 text-center">Monitor your progress and adjust your training as you improve.</p>
+              <p className="text-muted-foreground text-center">Monitor your progress and adjust your training as you improve.</p>
             </CardContent>
           </Card>
         </div>

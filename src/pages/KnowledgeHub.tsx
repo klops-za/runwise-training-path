@@ -89,33 +89,33 @@ const KnowledgeHub = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Knowledge Hub</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold text-foreground mb-4">Knowledge Hub</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Expert insights and proven strategies to help you train smarter, run faster, and stay injury-free
           </p>
         </div>
 
         {/* Featured Articles */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Featured Articles</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-6">Featured Articles</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {featuredArticles.map((article, index) => (
-              <Card key={index} className="border-blue-100 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+              <Card key={index} className="border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
                 <CardHeader>
-                  <div className="w-full h-32 bg-gradient-to-r from-blue-100 to-orange-100 rounded-lg mb-4"></div>
+                  <div className="w-full h-32 bg-gradient-to-r from-blue-100 to-orange-100 dark:from-blue-900 dark:to-orange-900 rounded-lg mb-4"></div>
                   <CardTitle className="text-lg">{article.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 mb-4">{article.excerpt}</p>
+                  <p className="text-muted-foreground mb-4">{article.excerpt}</p>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-blue-600 font-medium">{article.category}</span>
-                    <span className="text-gray-500">{article.readTime}</span>
+                    <span className="text-blue-600 dark:text-blue-400 font-medium">{article.category}</span>
+                    <span className="text-muted-foreground">{article.readTime}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -125,12 +125,12 @@ const KnowledgeHub = () => {
 
         {/* Categories */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Browse by Category</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-6">Browse by Category</h2>
           <div className="grid md:grid-cols-2 gap-6">
             {categories.map((category) => {
               const IconComponent = category.icon;
               return (
-                <Card key={category.id} className="border-gray-200 hover:shadow-lg transition-all duration-200">
+                <Card key={category.id} className="border-border hover:shadow-lg transition-all duration-200">
                   <CardHeader>
                     <div className="flex items-center space-x-4">
                       <div className={`w-12 h-12 bg-gradient-to-r ${category.color} rounded-lg flex items-center justify-center`}>
@@ -138,15 +138,15 @@ const KnowledgeHub = () => {
                       </div>
                       <div>
                         <CardTitle className="text-xl">{category.title}</CardTitle>
-                        <p className="text-gray-600 text-sm">{category.description}</p>
+                        <p className="text-muted-foreground text-sm">{category.description}</p>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 mb-4">
                       {category.articles.map((article, index) => (
-                        <div key={index} className="flex items-center text-sm text-gray-700 hover:text-blue-600 cursor-pointer">
-                          <BookOpen className="h-4 w-4 mr-2 text-gray-400" />
+                        <div key={index} className="flex items-center text-sm text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">
+                          <BookOpen className="h-4 w-4 mr-2 text-muted-foreground" />
                           {article}
                         </div>
                       ))}
