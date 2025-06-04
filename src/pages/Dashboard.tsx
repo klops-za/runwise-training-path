@@ -157,7 +157,7 @@ const Dashboard = () => {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"
-                  onClick={() => navigate('/onboarding')}
+                  onClick={() => navigate('/profile')}
                 >
                   <User className="mr-2 h-4 w-4" />
                   Edit Profile

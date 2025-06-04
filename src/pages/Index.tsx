@@ -26,6 +26,9 @@ const Index = () => {
 
           if (!error && profile) {
             setHasProfile(true);
+            // Redirect existing users directly to dashboard
+            navigate('/dashboard');
+            return;
           } else {
             // User doesn't have a profile, redirect to onboarding
             navigate('/onboarding');
@@ -54,31 +57,7 @@ const Index = () => {
     );
   }
 
-  if (user && hasProfile) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center mb-16">
-            <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-              Welcome back to RunWise
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Ready to continue your training journey?
-            </p>
-            <Button 
-              onClick={() => navigate('/dashboard')}
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
-            >
-              Go to Dashboard
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // This component will only render for non-authenticated users
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
       <div className="container mx-auto px-4 py-16">
