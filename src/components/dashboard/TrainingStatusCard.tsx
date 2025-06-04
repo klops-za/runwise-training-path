@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw, Clock, MapPin, Calendar } from 'lucide-react';
+import { Plus, RefreshCw, Clock, MapPin, Calendar, CheckCircle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -34,6 +34,86 @@ const TrainingStatusCard = ({
   const daysUntilStart = trainingStartDate && !hasTrainingStarted 
     ? Math.ceil((trainingStartDate.getTime() - today.getTime()) / (1000 * 3600 * 24))
     : 0;
+
+  // Get last completed session and next two upcoming sessions
+  const today_date = new Date().toISOString().split('T')[0];
+  const allWorkouts = [...currentWeekWorkouts].sort((a, b) => {
+    if (!a.date || !b.date) return 0;
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
+
+  const lastCompletedSession = allWorkouts
+    .filter(workout => workout.status === 'Completed' || (workout.date && workout.date < today_date))
+    .pop();
+
+  const upcomingSessions = allWorkouts
+    .filter(workout => workout.date && workout.date >= today_date && workout.status !== 'Completed')
+    .slice(0, 2);
+
+  const formatWorkoutDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return 'Tomorrow';
+    } else {
+      return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+  };
+
+  const WorkoutDisplay = ({ workout, isCompleted = false }: { workout: Workout, isCompleted?: boolean }) => (
+    <div className={`flex items-center justify-between p-3 rounded-lg border ${
+      isCompleted 
+        ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800'
+        : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'
+    }`}>
+      <div className="flex items-center space-x-3">
+        {isCompleted && <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />}
+        {!isCompleted && <ArrowRight className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
+        <div>
+          <div className={`font-medium text-sm ${
+            isCompleted 
+              ? 'text-green-900 dark:text-green-100'
+              : 'text-blue-900 dark:text-blue-100'
+          }`}>
+            {workout.type}
+          </div>
+          <div className={`text-xs flex items-center space-x-3 ${
+            isCompleted 
+              ? 'text-green-700 dark:text-green-300'
+              : 'text-blue-700 dark:text-blue-300'
+          }`}>
+            {workout.date && (
+              <span>{formatWorkoutDate(workout.date)}</span>
+            )}
+            {workout.duration && (
+              <span className="flex items-center">
+                <Clock className="h-3 w-3 mr-1" />
+                {workout.duration}min
+              </span>
+            )}
+            {workout.distance_target && (
+              <span className="flex items-center">
+                <MapPin className="h-3 w-3 mr-1" />
+                {convertDistance(workout.distance_target)}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className={`text-xs px-2 py-1 rounded-full ${
+        isCompleted 
+          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+          : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+      }`}>
+        {isCompleted ? 'Completed' : workout.status}
+      </div>
+    </div>
+  );
 
   return (
     <Card>
@@ -87,46 +167,39 @@ const TrainingStatusCard = ({
               </div>
             </div>
             
-            {/* This Week's Sessions - only show if training has started */}
-            {hasTrainingStarted && currentWeekWorkouts.length > 0 && (
+            {/* Sessions Display - only show if training has started */}
+            {hasTrainingStarted && (
               <div className="space-y-3">
-                <h4 className="font-medium text-foreground">This Week's Sessions (Week {currentWeek})</h4>
-                <div className="space-y-2">
-                  {currentWeekWorkouts.slice(0, 3).map((workout) => (
-                    <div key={workout.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border">
-                      <div className="flex-1">
-                        <div className="font-medium text-sm text-foreground">{workout.type}</div>
-                        <div className="text-xs text-muted-foreground flex items-center space-x-3">
-                          {workout.date && (
-                            <span>{new Date(workout.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                          )}
-                          {workout.duration && (
-                            <span className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {workout.duration}min
-                            </span>
-                          )}
-                          {workout.distance_target && (
-                            <span className="flex items-center">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {convertDistance(workout.distance_target)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                        {workout.status}
-                      </div>
+                {/* Last Completed Session */}
+                {lastCompletedSession && (
+                  <div>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-2">Last Completed</h4>
+                    <WorkoutDisplay workout={lastCompletedSession} isCompleted={true} />
+                  </div>
+                )}
+
+                {/* Next Two Upcoming Sessions */}
+                {upcomingSessions.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-2">
+                      {upcomingSessions.length === 1 ? 'Next Session' : 'Next Sessions'}
+                    </h4>
+                    <div className="space-y-2">
+                      {upcomingSessions.map((workout) => (
+                        <WorkoutDisplay key={workout.id} workout={workout} />
+                      ))}
                     </div>
-                  ))}
-                  {currentWeekWorkouts.length > 3 && (
-                    <div className="text-center">
-                      <Button variant="outline" size="sm" onClick={() => navigate('/schedule')}>
-                        View All {currentWeekWorkouts.length} Sessions
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                {/* Show view all button if there are more sessions */}
+                {currentWeekWorkouts.length > 3 && (
+                  <div className="text-center pt-2">
+                    <Button variant="outline" size="sm" onClick={() => navigate('/schedule')}>
+                      View All {currentWeekWorkouts.length} Sessions This Week
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -138,11 +211,11 @@ const TrainingStatusCard = ({
               </div>
             )}
 
-            {/* Show active training message if started */}
-            {hasTrainingStarted && (
+            {/* Show active training message if started but no sessions to show */}
+            {hasTrainingStarted && !lastCompletedSession && upcomingSessions.length === 0 && (
               <div className="text-sm text-muted-foreground">
                 Your personalized {trainingPlan.race_type || 'running'} training plan is active! 
-                View your weekly schedule to see today's workout.
+                View your weekly schedule to see your workouts.
               </div>
             )}
           </div>
@@ -163,7 +236,7 @@ const TrainingStatusCard = ({
                 <>
                   <Plus className="h-4 w-4 mr-2" />
                   Generate Training Plan
-                </>
+                </Plus>
               )}
             </Button>
           </div>
