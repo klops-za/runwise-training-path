@@ -68,6 +68,12 @@ const TrainingStatusCard = ({
   };
 
   const getWorkoutDisplayDistance = (workout: Workout): string | null => {
+    // For intervals and hill workouts, show distance in meters instead of km/miles
+    if ((workout.type?.toLowerCase() === 'interval' || workout.type?.toLowerCase() === 'hill') && workout.distance_target) {
+      const distanceInMeters = Math.round(workout.distance_target * 1000);
+      return `${distanceInMeters}m`;
+    }
+    
     // Use distance_target from database as the primary source (now properly progressive)
     if (workout.distance_target) {
       return convertDistance(workout.distance_target);
@@ -112,7 +118,7 @@ const TrainingStatusCard = ({
     const workoutType = workout.type || 'Easy';
     
     // Base descriptions for different workout types
-    const workoutDescriptions: Record<string, { purpose: string; structure: string; benefits: string }> = {
+    const workoutDescriptions: Record<string, { purpose: string; structure: string; benefits: string }}> = {
       'Easy': {
         purpose: 'Easy runs form the foundation of your training, building aerobic fitness while allowing your body to recover between harder sessions.',
         structure: 'Run at a comfortable, conversational pace where you could maintain a conversation throughout. Your heart rate should stay in Zone 1-2.',

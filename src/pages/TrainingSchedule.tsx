@@ -166,8 +166,8 @@ const TrainingSchedule = () => {
   };
 
   const getWorkoutDisplayDistance = (workout: Workout): string | null => {
-    // For intervals, show distance in meters instead of km/miles
-    if (workout.type?.toLowerCase() === 'interval' && workout.distance_target) {
+    // For intervals and hill workouts, show distance in meters instead of km/miles
+    if ((workout.type?.toLowerCase() === 'interval' || workout.type?.toLowerCase() === 'hill') && workout.distance_target) {
       const distanceInMeters = Math.round(workout.distance_target * 1000);
       return `${distanceInMeters}m`;
     }

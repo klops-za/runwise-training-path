@@ -129,8 +129,8 @@ export const generateWorkoutDescription = (
       const mainSegment = structure.main[0];
       
       if (mainSegment.reps && mainSegment.distance) {
-        // Interval workout - show distance in meters for intervals
-        if (workoutType.toLowerCase() === 'interval') {
+        // Interval and Hill workouts - show distance in meters for intervals and hills
+        if (workoutType.toLowerCase() === 'interval' || workoutType.toLowerCase() === 'hill') {
           const repDistanceInMeters = Math.round(mainSegment.distance * 1000);
           const restTime = mainSegment.rest ? `${mainSegment.rest}s rest` : 'recovery';
           parts.push(`${mainSegment.reps} × ${repDistanceInMeters}m with ${restTime}`);
@@ -140,8 +140,8 @@ export const generateWorkoutDescription = (
           parts.push(`${mainSegment.reps} × ${repDistance} with ${restTime}`);
         }
       } else if (mainSegment.distance) {
-        // Continuous run - show in meters for intervals, km/miles for others
-        if (workoutType.toLowerCase() === 'interval') {
+        // Continuous run - show in meters for intervals and hills, km/miles for others
+        if (workoutType.toLowerCase() === 'interval' || workoutType.toLowerCase() === 'hill') {
           const distanceInMeters = Math.round(mainSegment.distance * 1000);
           parts.push(`${distanceInMeters}m ${workoutType.toLowerCase()} run`);
         } else {
@@ -151,7 +151,7 @@ export const generateWorkoutDescription = (
       } else if (mainSegment.segments && mainSegment.segments.length > 1) {
         // Complex structured workout
         const segmentDescriptions = mainSegment.segments.map(seg => {
-          if (workoutType.toLowerCase() === 'interval') {
+          if (workoutType.toLowerCase() === 'interval' || workoutType.toLowerCase() === 'hill') {
             const segDistanceInMeters = Math.round(seg.distance * 1000);
             return `${segDistanceInMeters}m at ${seg.pace || 'target pace'}`;
           } else {
@@ -161,7 +161,7 @@ export const generateWorkoutDescription = (
         parts.push(segmentDescriptions.join(' + '));
       } else if (distanceKm) {
         // Fallback to provided distance
-        if (workoutType.toLowerCase() === 'interval') {
+        if (workoutType.toLowerCase() === 'interval' || workoutType.toLowerCase() === 'hill') {
           const distanceInMeters = Math.round(distanceKm * 1000);
           parts.push(`${distanceInMeters}m ${workoutType.toLowerCase()} run`);
         } else {
@@ -170,7 +170,7 @@ export const generateWorkoutDescription = (
       }
     } else if (distanceKm) {
       // No structure, use provided distance
-      if (workoutType.toLowerCase() === 'interval') {
+      if (workoutType.toLowerCase() === 'interval' || workoutType.toLowerCase() === 'hill') {
         const distanceInMeters = Math.round(distanceKm * 1000);
         parts.push(`${distanceInMeters}m ${workoutType.toLowerCase()} run`);
       } else {
