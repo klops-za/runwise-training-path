@@ -547,6 +547,7 @@ export type Database = {
           min_distance: number | null
           min_duration: number | null
           phase: Database["public"]["Enums"]["phase_type"]
+          race_distance: Database["public"]["Enums"]["race_type"] | null
           structure_json: Json
           updated_at: string
           workout_type: Database["public"]["Enums"]["workout_type"]
@@ -559,6 +560,7 @@ export type Database = {
           min_distance?: number | null
           min_duration?: number | null
           phase: Database["public"]["Enums"]["phase_type"]
+          race_distance?: Database["public"]["Enums"]["race_type"] | null
           structure_json: Json
           updated_at?: string
           workout_type: Database["public"]["Enums"]["workout_type"]
@@ -571,6 +573,7 @@ export type Database = {
           min_distance?: number | null
           min_duration?: number | null
           phase?: Database["public"]["Enums"]["phase_type"]
+          race_distance?: Database["public"]["Enums"]["race_type"] | null
           structure_json?: Json
           updated_at?: string
           workout_type?: Database["public"]["Enums"]["workout_type"]

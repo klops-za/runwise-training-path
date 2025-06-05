@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -6,6 +5,7 @@ type WorkoutStructure = Database['public']['Tables']['workout_structures']['Row'
 type WorkoutType = Database['public']['Enums']['workout_type'];
 type ExperienceLevel = Database['public']['Enums']['experience_level_type'];
 type PhaseType = Database['public']['Enums']['phase_type'];
+type RaceType = Database['public']['Enums']['race_type'];
 
 export interface WorkoutSegment {
   distance?: number;
@@ -62,14 +62,22 @@ export const EFFORT_LEVELS = {
 export const getWorkoutStructure = async (
   workoutType: WorkoutType,
   experienceLevel: ExperienceLevel,
-  phase: PhaseType
+  phase: PhaseType,
+  raceDistance?: RaceType
 ): Promise<WorkoutStructure | null> => {
-  const { data, error } = await supabase
+  let query = supabase
     .from('workout_structures')
     .select('*')
     .eq('workout_type', workoutType)
     .eq('experience_level', experienceLevel)
-    .eq('phase', phase)
+    .eq('phase', phase);
+
+  // If race distance is provided, filter by it; otherwise, get any structure
+  if (raceDistance) {
+    query = query.eq('race_distance', raceDistance);
+  }
+
+  const { data, error } = await query
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
