@@ -122,7 +122,9 @@ const Dashboard = () => {
         fitness_score_param: runnerData.fitness_score,
         training_days_param: runnerData.training_days,
         race_date_param: runnerData.race_date,
-        training_start_date_param: runnerData.training_start_date
+        training_start_date_param: runnerData.training_start_date,
+        plan_name_param: null,
+        plan_description_param: null
       });
 
       if (error) {

@@ -56,19 +56,22 @@ export const generateTrainingPlanWithName = async (
 
 export const getActiveTrainingPlan = async (runnerId: string) => {
   try {
+    // Use select with limit 1 instead of maybeSingle to avoid the multiple rows error
     const { data, error } = await supabase
       .from('training_plans')
       .select('*')
       .eq('runner_id', runnerId)
       .eq('status', 'active')
-      .maybeSingle();
+      .order('created_at', { ascending: false })
+      .limit(1);
 
     if (error) {
       console.error('Error fetching active training plan:', error);
       throw error;
     }
 
-    return data;
+    // Return the first plan or null if no plans found
+    return data && data.length > 0 ? data[0] : null;
   } catch (error) {
     console.error('Error in getActiveTrainingPlan:', error);
     throw error;

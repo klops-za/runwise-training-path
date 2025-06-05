@@ -25,7 +25,7 @@ export const generateTrainingPlanWithTemplates = async (
       trainingStartDate: trainingStartDate.toISOString().split('T')[0]
     });
 
-    // Call the Supabase function with the race type directly
+    // Call the Supabase function with explicit null values for optional parameters
     const { data: planData, error: planError } = await supabase.rpc('generate_training_plan', {
       runner_uuid: runnerId,
       race_type_param: raceType,
@@ -33,7 +33,9 @@ export const generateTrainingPlanWithTemplates = async (
       fitness_score_param: fitnessScore,
       training_days_param: trainingDays,
       race_date_param: raceDate.toISOString().split('T')[0],
-      training_start_date_param: trainingStartDate.toISOString().split('T')[0]
+      training_start_date_param: trainingStartDate.toISOString().split('T')[0],
+      plan_name_param: null,
+      plan_description_param: null
     });
 
     if (planError) {
