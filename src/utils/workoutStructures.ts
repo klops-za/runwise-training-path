@@ -432,7 +432,7 @@ export const calculateWorkoutDuration = (
   } else if (mainSegment?.distance && mainSegment?.pace) {
     // Calculate duration from distance and pace (distance is in km, convert to miles)
     const distanceInMiles = mainSegment.distance * 0.621371;
-    const paceSecondsPerMile = paceToSecondsPerMile(segment.pace);
+    const paceSecondsPerMile = paceToSecondsPerMile(mainSegment.pace);
     const timeSeconds = distanceInMiles * paceSecondsPerMile;
     totalDuration += timeSeconds / 60; // convert to minutes
   } else {
