@@ -59,6 +59,21 @@ export const EFFORT_LEVELS = {
   MAXIMUM: 'Maximum'
 } as const;
 
+// Helper function to convert distance to meters with proper rounding
+const convertDistanceToMeters = (distanceInMiles: number): string => {
+  const meters = distanceInMiles * 1609.34;
+  
+  // Round to nearest 50m for distances under 1000m, nearest 100m for larger distances
+  let roundedMeters;
+  if (meters < 1000) {
+    roundedMeters = Math.round(meters / 50) * 50;
+  } else {
+    roundedMeters = Math.round(meters / 100) * 100;
+  }
+  
+  return `${roundedMeters}m`;
+};
+
 export const getWorkoutStructure = async (
   workoutType: WorkoutType,
   experienceLevel: ExperienceLevel,
@@ -145,9 +160,9 @@ export const generateWorkoutDescription = (
   switch (workoutType) {
     case 'Interval':
       if (mainSegment?.reps && mainSegment?.distance) {
-        const distanceInMeters = (mainSegment.distance * 1609).toFixed(0);
+        const distanceInMeters = convertDistanceToMeters(mainSegment.distance);
         const restTime = mainSegment.rest || 90;
-        mainDescription = `${mainSegment.reps}x${distanceInMeters}m @ ${mainSegment.pace || PACE_ZONES.INTERVAL} pace with ${restTime}s rest`;
+        mainDescription = `${mainSegment.reps}x${distanceInMeters} @ ${mainSegment.pace || PACE_ZONES.INTERVAL} pace with ${restTime}s rest`;
       } else {
         mainDescription = mainSegment?.description || 'Interval training session';
       }
