@@ -11,15 +11,14 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, User, LogOut, Calendar, BookOpen, Home, Settings, FolderOpen } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Menu, User, LogOut, Calendar, BookOpen, Home, FolderOpen } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import AuthForm from "@/components/AuthForm";
 
 const Navigation = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
-  const [showAuthForm, setShowAuthForm] = useState(false);
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -109,7 +108,7 @@ const Navigation = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/plans" className="flex items-center">
-                        <Settings className="mr-2 h-4 w-4" />
+                        <FolderOpen className="mr-2 h-4 w-4" />
                         <span>Manage Plans</span>
                       </Link>
                     </DropdownMenuItem>
@@ -122,17 +121,13 @@ const Navigation = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <Button onClick={() => setShowAuthForm(true)}>
+              <Button onClick={() => navigate('/')}>
                 Sign In
               </Button>
             )}
           </div>
         </div>
       </div>
-
-      {showAuthForm && (
-        <AuthForm onClose={() => setShowAuthForm(false)} />
-      )}
     </nav>
   );
 };
