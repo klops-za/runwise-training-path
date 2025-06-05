@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +38,35 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
     trainingStartDate: new Date(),
     trainingIntensity: 'Moderate' as IntensityType,
   });
+
+  // Fetch user profile data when dialog opens
+  useEffect(() => {
+    if (open && user) {
+      fetchUserProfile();
+    }
+  }, [open, user]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data: runnerData, error } = await supabase
+        .from('runners')
+        .select('experience_level, training_days')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && runnerData) {
+        setFormData(prev => ({
+          ...prev,
+          experienceLevel: runnerData.experience_level || prev.experienceLevel,
+          trainingDays: runnerData.training_days || prev.trainingDays,
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const resetForm = () => {
     setFormData({
