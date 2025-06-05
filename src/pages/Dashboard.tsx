@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -240,14 +241,18 @@ const Dashboard = () => {
     );
   }
 
-  const daysUntilRace = runnerData.race_date 
-    ? Math.ceil((new Date(runnerData.race_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))
+  // Calculate days until race from the active training plan's race date or runner's race date
+  const raceDate = trainingPlan?.plan_data?.race_date || runnerData.race_date;
+  const daysUntilRace = raceDate 
+    ? Math.ceil((new Date(raceDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24))
     : null;
 
+  // Calculate training progress from the active training plan
+  const planData = trainingPlan?.plan_data as any;
+  const totalWeeks = planData?.total_weeks || 16;
   const weeksElapsed = trainingPlan?.start_date 
     ? Math.floor((new Date().getTime() - new Date(trainingPlan.start_date).getTime()) / (1000 * 3600 * 24 * 7))
     : 0;
-  const totalWeeks = 16;
   const currentWeek = Math.min(Math.max(weeksElapsed + 1, 1), totalWeeks);
   const progressPercentage = (currentWeek / totalWeeks) * 100;
 
@@ -257,6 +262,9 @@ const Dashboard = () => {
 
   const paceUnit = runnerData.preferred_unit === 'mi' ? 'mile' : 'km';
 
+  // Use race goal from active training plan if available, otherwise from runner data
+  const activeRaceGoal = trainingPlan?.race_type || runnerData.race_goal;
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -264,7 +272,7 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <WelcomeSection 
           displayName={displayName}
-          raceGoal={runnerData.race_goal}
+          raceGoal={activeRaceGoal}
           daysUntilRace={daysUntilRace}
         />
 
