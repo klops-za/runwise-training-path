@@ -46,7 +46,7 @@ const TrainingStatusCard = ({
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // Use the new unified description generator
+      // Use the new unified description generator with race type context
       const generatedDescription = generateWorkoutDescription(
         workout.type || 'Easy', 
         structure, 

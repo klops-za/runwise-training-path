@@ -99,6 +99,35 @@ export const getWorkoutStructure = async (
   return data;
 };
 
+export const getWorkoutStructureFromPlan = async (
+  planId: string,
+  workoutType: WorkoutType,
+  experienceLevel: ExperienceLevel,
+  phase: PhaseType
+): Promise<WorkoutStructure | null> => {
+  console.log('Fetching workout structure with plan race type for plan:', planId);
+
+  // First get the race type from the training plan
+  const { data: planData, error: planError } = await supabase
+    .from('training_plans')
+    .select('race_type')
+    .eq('id', planId)
+    .maybeSingle();
+
+  if (planError) {
+    console.error('Error fetching training plan:', planError);
+    return null;
+  }
+
+  if (!planData?.race_type) {
+    console.warn('No race type found for training plan:', planId);
+    return getWorkoutStructure(workoutType, experienceLevel, phase);
+  }
+
+  console.log('Found race type from plan:', planData.race_type);
+  return getWorkoutStructure(workoutType, experienceLevel, phase, planData.race_type);
+};
+
 export const generateWorkoutDescription = (
   workoutType: WorkoutType,
   structureJson: WorkoutStructureJson,
