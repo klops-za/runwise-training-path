@@ -1,5 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type WorkoutType = Database['public']['Enums']['workout_type'];
+type ExperienceLevel = Database['public']['Enums']['experience_level_type'];
+type RaceType = Database['public']['Enums']['race_type'];
+type PhaseType = Database['public']['Enums']['phase_type'];
 
 export const correctNovice10KStructures = async () => {
   console.log('Correcting Novice 10K workout structures...');
@@ -17,13 +23,23 @@ export const correctNovice10KStructures = async () => {
   }
   
   // Insert corrected novice 10K structures with appropriate distances
-  const correctStructures = [
+  const correctStructures: Array<{
+    workout_type: WorkoutType;
+    experience_level: ExperienceLevel;
+    race_distance: RaceType;
+    phase: PhaseType;
+    min_distance: number;
+    max_distance: number;
+    min_duration: number;
+    max_duration: number;
+    structure_json: any;
+  }> = [
     // BASE PHASE - Novice 10K
     {
-      workout_type: 'Easy',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Base',
+      workout_type: 'Easy' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Base' as PhaseType,
       min_distance: 3.0,
       max_distance: 4.0,
       min_duration: 20,
@@ -40,10 +56,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Long',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Base',
+      workout_type: 'Long' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Base' as PhaseType,
       min_distance: 5.0,
       max_distance: 7.0,
       min_duration: 35,
@@ -58,10 +74,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Recovery',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Base',
+      workout_type: 'Recovery' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Base' as PhaseType,
       min_distance: 2.0,
       max_distance: 3.0,
       min_duration: 15,
@@ -78,10 +94,10 @@ export const correctNovice10KStructures = async () => {
     
     // BUILD PHASE - Novice 10K
     {
-      workout_type: 'Easy',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Build',
+      workout_type: 'Easy' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Build' as PhaseType,
       min_distance: 3.5,
       max_distance: 5.0,
       min_duration: 25,
@@ -96,10 +112,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Tempo',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Build',
+      workout_type: 'Tempo' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Build' as PhaseType,
       min_distance: 4.0,
       max_distance: 5.0,
       min_duration: 25,
@@ -116,10 +132,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Interval',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Build',
+      workout_type: 'Interval' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Build' as PhaseType,
       min_distance: 4.0,
       max_distance: 5.0,
       min_duration: 30,
@@ -138,10 +154,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Long',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Build',
+      workout_type: 'Long' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Build' as PhaseType,
       min_distance: 6.0,
       max_distance: 8.0,
       min_duration: 40,
@@ -158,10 +174,10 @@ export const correctNovice10KStructures = async () => {
     
     // PEAK PHASE - Novice 10K
     {
-      workout_type: 'Easy',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Peak',
+      workout_type: 'Easy' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Peak' as PhaseType,
       min_distance: 4.0,
       max_distance: 5.0,
       min_duration: 25,
@@ -176,10 +192,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Tempo',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Peak',
+      workout_type: 'Tempo' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Peak' as PhaseType,
       min_distance: 5.0,
       max_distance: 6.0,
       min_duration: 30,
@@ -196,10 +212,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Interval',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Peak',
+      workout_type: 'Interval' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Peak' as PhaseType,
       min_distance: 5.0,
       max_distance: 6.0,
       min_duration: 35,
@@ -218,10 +234,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Long',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Peak',
+      workout_type: 'Long' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Peak' as PhaseType,
       min_distance: 7.0,
       max_distance: 8.0,
       min_duration: 45,
@@ -240,10 +256,10 @@ export const correctNovice10KStructures = async () => {
     
     // TAPER PHASE - Novice 10K
     {
-      workout_type: 'Easy',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Taper',
+      workout_type: 'Easy' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Taper' as PhaseType,
       min_distance: 3.0,
       max_distance: 4.0,
       min_duration: 20,
@@ -258,10 +274,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Tempo',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Taper',
+      workout_type: 'Tempo' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Taper' as PhaseType,
       min_distance: 4.0,
       max_distance: 5.0,
       min_duration: 25,
@@ -278,10 +294,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Interval',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Taper',
+      workout_type: 'Interval' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Taper' as PhaseType,
       min_distance: 4.0,
       max_distance: 5.0,
       min_duration: 25,
@@ -300,10 +316,10 @@ export const correctNovice10KStructures = async () => {
       }
     },
     {
-      workout_type: 'Long',
-      experience_level: 'Novice',
-      race_distance: '10K',
-      phase: 'Taper',
+      workout_type: 'Long' as WorkoutType,
+      experience_level: 'Novice' as ExperienceLevel,
+      race_distance: '10K' as RaceType,
+      phase: 'Taper' as PhaseType,
       min_distance: 5.0,
       max_distance: 6.0,
       min_duration: 35,
