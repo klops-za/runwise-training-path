@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -118,7 +119,7 @@ const TrainingStatusCard = ({
     const workoutType = workout.type || 'Easy';
     
     // Base descriptions for different workout types
-    const workoutDescriptions: Record<string, { purpose: string; structure: string; benefits: string }}> = {
+    const workoutDescriptions: Record<string, { purpose: string; structure: string; benefits: string }> = {
       'Easy': {
         purpose: 'Easy runs form the foundation of your training, building aerobic fitness while allowing your body to recover between harder sessions.',
         structure: 'Run at a comfortable, conversational pace where you could maintain a conversation throughout. Your heart rate should stay in Zone 1-2.',
@@ -368,6 +369,42 @@ const TrainingStatusCard = ({
       </CardContent>
     </Card>
   );
+
+  const toggleWorkoutStatus = async (workoutId: string) => {
+    const workout = currentWeekWorkouts.find(w => w.id === workoutId);
+    if (!workout) return;
+
+    const newStatus = workout.status === 'Completed' ? 'Pending' : 'Completed';
+
+    try {
+      const { error } = await supabase
+        .from('workouts')
+        .update({ status: newStatus })
+        .eq('id', workoutId);
+
+      if (error) {
+        console.error('Error updating workout status:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update workout status.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: `Workout marked as ${newStatus.toLowerCase()}.`,
+      });
+
+      // Call the callback to refresh data
+      if (onWorkoutUpdate) {
+        onWorkoutUpdate();
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    }
+  };
 };
 
 export default TrainingStatusCard;
