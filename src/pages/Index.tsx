@@ -48,6 +48,21 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
+  const handleStartFullTraining = () => {
+    // Scroll to the auth form for users to sign up
+    const authForm = document.getElementById('auth-form');
+    if (authForm) {
+      authForm.scrollIntoView({ behavior: 'smooth' });
+      // Focus on the first input in the form after scrolling
+      setTimeout(() => {
+        const firstInput = authForm.querySelector('input[type="email"]') as HTMLInputElement;
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }, 500);
+    }
+  };
+
   if (loading || (user && profileLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -86,9 +101,10 @@ const Index = () => {
               Get Free Plan
             </Button>
             <Button 
-              onClick={() => document.getElementById('auth-form')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={handleStartFullTraining}
               variant="outline"
               size="lg"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-950"
             >
               Start Full Training
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -141,6 +157,10 @@ const Index = () => {
 
         {/* Auth Form */}
         <div className="max-w-md mx-auto" id="auth-form">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-2">Get Started with Your Training</h2>
+            <p className="text-muted-foreground">Sign up to create your personalized training plan</p>
+          </div>
           <AuthForm />
         </div>
       </div>
