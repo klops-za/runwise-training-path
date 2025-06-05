@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -144,6 +145,7 @@ const TrainingSchedule = () => {
         return workout.description || 'No description available';
       }
       
+      // Fix the type casting by going through unknown first
       const structure = detailsData as unknown as WorkoutStructureJson;
       
       // Use the database distance_target directly (already in km)
@@ -165,6 +167,12 @@ const TrainingSchedule = () => {
   };
 
   const getWorkoutDisplayDistance = (workout: Workout): string | null => {
+    // For intervals, show distance in meters instead of km/miles
+    if (workout.type?.toLowerCase() === 'interval' && workout.distance_target) {
+      const distanceInMeters = Math.round(workout.distance_target * 1000);
+      return `${distanceInMeters}m`;
+    }
+    
     // Use distance_target from database as primary and only source (already in km)
     if (workout.distance_target) {
       return convertDistance(workout.distance_target);

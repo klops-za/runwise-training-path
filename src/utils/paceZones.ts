@@ -24,8 +24,9 @@ export const WORKOUT_TYPE_EFFORT_MAP = {
 } as const;
 
 // Helper function to get standardized pace for a workout type
-export const getStandardPace = (workoutType: string): string => {
-  return WORKOUT_TYPE_PACE_MAP[workoutType as keyof typeof WORKOUT_TYPE_PACE_MAP] || PACE_ZONES.EASY;
+export const getStandardPace = (workoutType: string): typeof PACE_ZONES[keyof typeof PACE_ZONES] | string => {
+  const paceData = WORKOUT_TYPE_PACE_MAP[workoutType as keyof typeof WORKOUT_TYPE_PACE_MAP];
+  return paceData || PACE_ZONES.EASY;
 };
 
 // Helper function to get standardized effort for a workout type
@@ -34,8 +35,10 @@ export const getStandardEffort = (workoutType: string): string => {
 };
 
 // Helper function to validate if a pace zone is valid
-export const isValidPaceZone = (pace: string): boolean => {
-  return Object.values(PACE_ZONES).includes(pace as any);
+export const isValidPaceZone = (pace: any): boolean => {
+  return Object.values(PACE_ZONES).some(zone => 
+    typeof zone === 'object' && zone.min === pace.min && zone.max === pace.max
+  );
 };
 
 // Helper function to validate if an effort level is valid
