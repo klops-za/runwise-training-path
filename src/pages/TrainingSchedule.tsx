@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -136,7 +135,7 @@ const TrainingSchedule = () => {
 
   // Helper function to calculate week within phase for progression
   const getWeekInPhase = (workout: Workout, trainingPlan: TrainingPlan) => {
-    if (!trainingPlan?.plan_data) return { weekInPhase: 1, totalPhaseWeeks: 1 };
+    if (!trainingPlan?.plan_data || !workout.phase) return { weekInPhase: 1, totalPhaseWeeks: 1 };
     
     const planData = trainingPlan.plan_data as any;
     const baseWeeks = planData.base_weeks || 4;
@@ -144,19 +143,36 @@ const TrainingSchedule = () => {
     const peakWeeks = planData.peak_weeks || 4;
     const taperWeeks = planData.taper_weeks || 1;
     
-    const weekNumber = workout.week_number || 1;
+    // Get all workouts for this phase to determine the week within phase
+    const phaseWorkouts = workouts
+      .filter(w => w.phase === workout.phase)
+      .sort((a, b) => (a.week_number || 0) - (b.week_number || 0));
     
-    if (workout.phase === 'Base') {
-      return { weekInPhase: weekNumber, totalPhaseWeeks: baseWeeks };
-    } else if (workout.phase === 'Build') {
-      return { weekInPhase: weekNumber - baseWeeks, totalPhaseWeeks: buildWeeks };
-    } else if (workout.phase === 'Peak') {
-      return { weekInPhase: weekNumber - baseWeeks - buildWeeks, totalPhaseWeeks: peakWeeks };
-    } else if (workout.phase === 'Taper') {
-      return { weekInPhase: weekNumber - baseWeeks - buildWeeks - peakWeeks, totalPhaseWeeks: taperWeeks };
+    // Find the position of this workout within its phase
+    const workoutIndex = phaseWorkouts.findIndex(w => w.id === workout.id);
+    const weekInPhase = Math.floor(workoutIndex / 7) + 1; // Assuming 7 workouts per week
+    
+    // Get total weeks for this phase
+    let totalPhaseWeeks = 1;
+    switch (workout.phase) {
+      case 'Base':
+        totalPhaseWeeks = baseWeeks;
+        break;
+      case 'Build':
+        totalPhaseWeeks = buildWeeks;
+        break;
+      case 'Peak':
+        totalPhaseWeeks = peakWeeks;
+        break;
+      case 'Taper':
+        totalPhaseWeeks = taperWeeks;
+        break;
     }
     
-    return { weekInPhase: 1, totalPhaseWeeks: 1 };
+    return { 
+      weekInPhase: Math.max(1, Math.min(weekInPhase, totalPhaseWeeks)), 
+      totalPhaseWeeks 
+    };
   };
 
   const getWorkoutDisplayDescription = (workout: Workout) => {
