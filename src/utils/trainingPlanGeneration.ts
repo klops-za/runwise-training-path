@@ -3,10 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
 type ExperienceLevel = Database['public']['Enums']['experience_level_type'];
+type RaceType = Database['public']['Enums']['race_type'];
 
 export const generateTrainingPlanWithTemplates = async (
   runnerId: string,
-  raceType: string,
+  raceType: RaceType,
   experienceLevel: ExperienceLevel,
   fitnessScore: number,
   trainingDays: number,
@@ -24,10 +25,10 @@ export const generateTrainingPlanWithTemplates = async (
       trainingStartDate: trainingStartDate.toISOString().split('T')[0]
     });
 
-    // Call the updated Supabase function that now properly handles templates
+    // Call the updated Supabase function that now properly handles templates and race distance
     const { data: planData, error: planError } = await supabase.rpc('generate_training_plan', {
       runner_uuid: runnerId,
-      race_type_param: raceType as any,
+      race_type_param: raceType,
       experience_level_param: experienceLevel,
       fitness_score_param: fitnessScore,
       training_days_param: trainingDays,

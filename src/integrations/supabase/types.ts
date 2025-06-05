@@ -541,41 +541,53 @@ export type Database = {
       workout_structures: {
         Row: {
           created_at: string
+          energy_system_focus: string | null
           experience_level: Database["public"]["Enums"]["experience_level_type"]
           id: string
           max_distance: number | null
+          max_duration: number | null
           min_distance: number | null
           min_duration: number | null
           phase: Database["public"]["Enums"]["phase_type"]
+          primary_intensity_zone: string | null
           race_distance: Database["public"]["Enums"]["race_type"] | null
           structure_json: Json
           updated_at: string
+          weekly_volume_percent: number | null
           workout_type: Database["public"]["Enums"]["workout_type"]
         }
         Insert: {
           created_at?: string
+          energy_system_focus?: string | null
           experience_level: Database["public"]["Enums"]["experience_level_type"]
           id?: string
           max_distance?: number | null
+          max_duration?: number | null
           min_distance?: number | null
           min_duration?: number | null
           phase: Database["public"]["Enums"]["phase_type"]
+          primary_intensity_zone?: string | null
           race_distance?: Database["public"]["Enums"]["race_type"] | null
           structure_json: Json
           updated_at?: string
+          weekly_volume_percent?: number | null
           workout_type: Database["public"]["Enums"]["workout_type"]
         }
         Update: {
           created_at?: string
+          energy_system_focus?: string | null
           experience_level?: Database["public"]["Enums"]["experience_level_type"]
           id?: string
           max_distance?: number | null
+          max_duration?: number | null
           min_distance?: number | null
           min_duration?: number | null
           phase?: Database["public"]["Enums"]["phase_type"]
+          primary_intensity_zone?: string | null
           race_distance?: Database["public"]["Enums"]["race_type"] | null
           structure_json?: Json
           updated_at?: string
+          weekly_volume_percent?: number | null
           workout_type?: Database["public"]["Enums"]["workout_type"]
         }
         Relationships: []
