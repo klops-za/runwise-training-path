@@ -1,4 +1,3 @@
-
 export interface WorkoutStructureJson {
   warmup?: {
     duration: number;
@@ -32,7 +31,8 @@ export const PACE_ZONES = {
   EASY: { min: 6.0, max: 7.0 },
   TEMPO: { min: 4.5, max: 5.5 },
   INTERVAL: { min: 3.5, max: 4.5 },
-  RECOVERY: { min: 7.0, max: 8.0 }
+  RECOVERY: { min: 7.0, max: 8.0 },
+  AEROBIC: { min: 5.5, max: 6.5 }
 };
 
 // Effort levels for different workout types
@@ -41,7 +41,12 @@ export const EFFORT_LEVELS = {
   TEMPO: 'comfortably hard',
   INTERVAL: 'hard',
   RECOVERY: 'very easy',
-  LONG: 'steady'
+  LONG: 'steady',
+  VERY_EASY: 'very easy',
+  MODERATE: 'moderate',
+  COMFORTABLE_HARD: 'comfortably hard',
+  HARD: 'hard',
+  VERY_HARD: 'very hard'
 };
 
 export const isValidWorkoutStructure = (data: any): boolean => {
@@ -135,9 +140,14 @@ export const generateWorkoutDescription = (
           parts.push(`${mainSegment.reps} × ${repDistance} with ${restTime}`);
         }
       } else if (mainSegment.distance) {
-        // Continuous run - use the calculated distance from the database
-        const mainDistance = convertDistance(mainSegment.distance);
-        parts.push(`${mainDistance} ${workoutType.toLowerCase()} run`);
+        // Continuous run - show in meters for intervals, km/miles for others
+        if (workoutType.toLowerCase() === 'interval') {
+          const distanceInMeters = Math.round(mainSegment.distance * 1000);
+          parts.push(`${distanceInMeters}m ${workoutType.toLowerCase()} run`);
+        } else {
+          const mainDistance = convertDistance(mainSegment.distance);
+          parts.push(`${mainDistance} ${workoutType.toLowerCase()} run`);
+        }
       } else if (mainSegment.segments && mainSegment.segments.length > 1) {
         // Complex structured workout
         const segmentDescriptions = mainSegment.segments.map(seg => {
@@ -151,11 +161,21 @@ export const generateWorkoutDescription = (
         parts.push(segmentDescriptions.join(' + '));
       } else if (distanceKm) {
         // Fallback to provided distance
-        parts.push(`${convertDistance(distanceKm)} ${workoutType.toLowerCase()} run`);
+        if (workoutType.toLowerCase() === 'interval') {
+          const distanceInMeters = Math.round(distanceKm * 1000);
+          parts.push(`${distanceInMeters}m ${workoutType.toLowerCase()} run`);
+        } else {
+          parts.push(`${convertDistance(distanceKm)} ${workoutType.toLowerCase()} run`);
+        }
       }
     } else if (distanceKm) {
       // No structure, use provided distance
-      parts.push(`${convertDistance(distanceKm)} ${workoutType.toLowerCase()} run`);
+      if (workoutType.toLowerCase() === 'interval') {
+        const distanceInMeters = Math.round(distanceKm * 1000);
+        parts.push(`${distanceInMeters}m ${workoutType.toLowerCase()} run`);
+      } else {
+        parts.push(`${convertDistance(distanceKm)} ${workoutType.toLowerCase()} run`);
+      }
     }
     
     // Add cooldown if present
