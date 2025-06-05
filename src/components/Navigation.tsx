@@ -1,157 +1,139 @@
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Home, Calendar, BookOpen, User, Menu, LogOut } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, User, LogOut, Calendar, BookOpen, Home, Settings, FolderOpen } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import AuthForm from "@/components/AuthForm";
 
 const Navigation = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { user, signOut } = useAuth();
-  const { toast } = useToast();
-  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const [showAuthForm, setShowAuthForm] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
-    toast({
-      title: "Signed out successfully",
-      description: "You have been logged out.",
-    });
-    navigate('/');
   };
 
+  const isActive = (path: string) => location.pathname === path;
+
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: Home },
-    { path: '/schedule', label: 'Schedule', icon: Calendar },
-    { path: '/knowledge', label: 'Knowledge', icon: BookOpen },
-    { path: '/profile', label: 'Profile', icon: User },
+    { href: "/dashboard", label: "Dashboard", icon: Home },
+    { href: "/plans", label: "Plans", icon: FolderOpen },
+    { href: "/schedule", label: "Schedule", icon: Calendar },
+    { href: "/knowledge", label: "Knowledge", icon: BookOpen },
   ];
 
-  const NavContent = () => (
-    <nav className="space-y-2">
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        const isActive = location.pathname === item.path;
-        
-        return (
-          <Button
-            key={item.path}
-            variant={isActive ? "default" : "ghost"}
-            className={`w-full justify-start ${
-              isActive 
-                ? "bg-gradient-to-r from-blue-600 to-orange-500 text-white" 
-                : "text-muted-foreground hover:text-foreground hover:bg-accent"
-            }`}
-            onClick={() => {
-              navigate(item.path);
-              setIsOpen(false);
-            }}
-          >
-            <Icon className="mr-2 h-4 w-4" />
-            {item.label}
-          </Button>
-        );
-      })}
-      
-      {user && (
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-          onClick={() => {
-            handleSignOut();
-            setIsOpen(false);
-          }}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign Out
-        </Button>
-      )}
-    </nav>
+  const NavLink = ({ href, label, icon: Icon, className = "" }: { href: string; label: string; icon: any; className?: string }) => (
+    <Link
+      to={href}
+      className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+        isActive(href)
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground hover:text-foreground hover:bg-accent"
+      } ${className}`}
+      onClick={() => setMobileMenuOpen(false)}
+    >
+      <Icon className="h-4 w-4" />
+      <span>{label}</span>
+    </Link>
   );
 
   return (
-    <>
-      {/* Header */}
-      <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full"></div>
-              <h1 
-                className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent cursor-pointer"
-                onClick={() => navigate(user ? '/dashboard' : '/')}
-              >
-                RunWise
-              </h1>
-            </div>
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center space-x-8">
+            <Link to="/" className="text-xl font-bold gradient-text">
+              RunWise
+            </Link>
+            
+            {user && (
+              <div className="hidden md:flex space-x-1">
+                {navItems.map((item) => (
+                  <NavLink key={item.href} {...item} />
+                ))}
+              </div>
+            )}
+          </div>
 
-            <div className="flex items-center space-x-2">
-              {/* Theme Toggle */}
-              <ThemeToggle />
-
-              {user && (
-                <>
-                  {/* Desktop Navigation */}
-                  <div className="hidden md:flex items-center space-x-1">
-                    {navItems.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = location.pathname === item.path;
-                      
-                      return (
-                        <Button
-                          key={item.path}
-                          variant={isActive ? "default" : "ghost"}
-                          className={`${
-                            isActive 
-                              ? "bg-gradient-to-r from-blue-600 to-orange-500 text-white" 
-                              : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                          }`}
-                          onClick={() => navigate(item.path)}
-                        >
-                          <Icon className="mr-2 h-4 w-4" />
-                          {item.label}
-                        </Button>
-                      );
-                    })}
-                    
-                    <Button
-                      variant="ghost"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                      onClick={handleSignOut}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </Button>
-                  </div>
-
-                  {/* Mobile Navigation */}
-                  <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <div className="flex items-center space-x-4">
+            <ThemeToggle />
+            
+            {user ? (
+              <>
+                <div className="md:hidden">
+                  <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                     <SheetTrigger asChild>
-                      <Button variant="outline" size="icon" className="md:hidden">
-                        <Menu className="h-4 w-4" />
+                      <Button variant="ghost" size="icon">
+                        <Menu className="h-5 w-5" />
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="right" className="w-64">
-                      <div className="flex items-center space-x-2 mb-6">
-                        <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full"></div>
-                        <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-                          RunWise
-                        </span>
+                    <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                      <div className="flex flex-col space-y-4 mt-6">
+                        {navItems.map((item) => (
+                          <NavLink key={item.href} {...item} className="w-full" />
+                        ))}
                       </div>
-                      <NavContent />
                     </SheetContent>
                   </Sheet>
-                </>
-              )}
-            </div>
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>
+                          {user.email?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="flex items-center">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/plans" className="flex items-center">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Manage Plans</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <Button onClick={() => setShowAuthForm(true)}>
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
-      </header>
-    </>
+      </div>
+
+      {showAuthForm && (
+        <AuthForm onClose={() => setShowAuthForm(false)} />
+      )}
+    </nav>
   );
 };
 

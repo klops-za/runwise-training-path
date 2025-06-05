@@ -13,6 +13,7 @@ import QuickActionsCard from '@/components/dashboard/QuickActionsCard';
 import PlanStatusCard from '@/components/dashboard/PlanStatusCard';
 import { calculateTrainingPaces } from '@/utils/paceCalculations';
 import { Button } from '@/components/ui/button';
+import { getActiveTrainingPlan } from '@/utils/multiPlanGeneration';
 import type { Database } from '@/integrations/supabase/types';
 
 type RunnerData = Database['public']['Tables']['runners']['Row'];
@@ -29,7 +30,6 @@ const Dashboard = () => {
   const [trainingPlan, setTrainingPlan] = useState<TrainingPlan | null>(null);
   const [currentWeekWorkouts, setCurrentWeekWorkouts] = useState<Workout[]>([]);
 
-  // Calculate training paces based on fitness score
   const trainingPaces = runnerData?.fitness_score 
     ? calculateTrainingPaces(runnerData.fitness_score)
     : { intervalPace: null, tempoPace: null, easyPace: null };
@@ -78,24 +78,13 @@ const Dashboard = () => {
 
         setRunnerData(runner);
 
-        // Fetch existing training plan
-        const { data: plan, error: planError } = await supabase
-          .from('training_plans')
-          .select('*')
-          .eq('runner_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (planError) {
-          console.error('Error fetching training plan:', planError);
-        } else {
-          setTrainingPlan(plan);
-          
-          // If we have a training plan, fetch current week workouts
-          if (plan) {
-            await fetchWorkoutsForCurrentWeek(plan);
-          }
+        // Fetch active training plan using the new utility function
+        const activePlan = await getActiveTrainingPlan(user.id);
+        setTrainingPlan(activePlan);
+        
+        // If we have a training plan, fetch current week workouts
+        if (activePlan) {
+          await fetchWorkoutsForCurrentWeek(activePlan);
         }
       } catch (error) {
         console.error('Unexpected error:', error);
@@ -148,19 +137,11 @@ const Dashboard = () => {
 
       console.log('Training plan generated successfully:', data);
       
-      // Fetch the newly created training plan
-      const { data: newPlan, error: fetchError } = await supabase
-        .from('training_plans')
-        .select('*')
-        .eq('id', data)
-        .single();
-
-      if (fetchError) {
-        console.error('Error fetching new training plan:', fetchError);
-      } else {
-        setTrainingPlan(newPlan);
-        
-        // Fetch current week workouts for the new plan
+      // Fetch the newly created active training plan
+      const newPlan = await getActiveTrainingPlan(user.id);
+      setTrainingPlan(newPlan);
+      
+      if (newPlan) {
         await fetchWorkoutsForCurrentWeek(newPlan);
       }
 
@@ -180,51 +161,33 @@ const Dashboard = () => {
     }
   };
 
-  const handlePlanGenerated = () => {
-    // Refetch data after plan generation
-    const fetchData = async () => {
-      if (!user) return;
+  const handlePlanGenerated = async () => {
+    if (!user) return;
 
-      try {
-        // Fetch runner data
-        const { data: runner, error: runnerError } = await supabase
-          .from('runners')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+    try {
+      const { data: runner, error: runnerError } = await supabase
+        .from('runners')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-        if (runnerError) {
-          console.error('Error fetching runner data:', runnerError);
-          return;
-        }
-
-        setRunnerData(runner);
-
-        // Fetch existing training plan
-        const { data: plan, error: planError } = await supabase
-          .from('training_plans')
-          .select('*')
-          .eq('runner_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (planError) {
-          console.error('Error fetching training plan:', planError);
-        } else {
-          setTrainingPlan(plan);
-          
-          // If we have a training plan, fetch current week workouts
-          if (plan) {
-            await fetchWorkoutsForCurrentWeek(plan);
-          }
-        }
-      } catch (error) {
-        console.error('Unexpected error:', error);
+      if (runnerError) {
+        console.error('Error fetching runner data:', runnerError);
+        return;
       }
-    };
 
-    fetchData();
+      setRunnerData(runner);
+
+      // Fetch active training plan
+      const activePlan = await getActiveTrainingPlan(user.id);
+      setTrainingPlan(activePlan);
+      
+      if (activePlan) {
+        await fetchWorkoutsForCurrentWeek(activePlan);
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    }
   };
 
   const handleWorkoutUpdate = async () => {
@@ -275,16 +238,14 @@ const Dashboard = () => {
     );
   }
 
-  // Calculate days until race
   const daysUntilRace = runnerData.race_date 
     ? Math.ceil((new Date(runnerData.race_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))
     : null;
 
-  // Calculate training progress
   const weeksElapsed = trainingPlan?.start_date 
     ? Math.floor((new Date().getTime() - new Date(trainingPlan.start_date).getTime()) / (1000 * 3600 * 24 * 7))
     : 0;
-  const totalWeeks = 16; // Standard training plan length
+  const totalWeeks = 16;
   const currentWeek = Math.min(Math.max(weeksElapsed + 1, 1), totalWeeks);
   const progressPercentage = (currentWeek / totalWeeks) * 100;
 

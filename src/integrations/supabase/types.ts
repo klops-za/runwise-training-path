@@ -438,36 +438,45 @@ export type Database = {
         Row: {
           created_at: string
           current_week: number | null
+          description: string | null
           id: string
+          name: string
           plan_data: Json | null
           race_type: Database["public"]["Enums"]["race_type"] | null
           recalibration_needed: boolean | null
           runner_id: string
           start_date: string | null
+          status: string | null
           tier: Database["public"]["Enums"]["tier_type"] | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           current_week?: number | null
+          description?: string | null
           id?: string
+          name: string
           plan_data?: Json | null
           race_type?: Database["public"]["Enums"]["race_type"] | null
           recalibration_needed?: boolean | null
           runner_id: string
           start_date?: string | null
+          status?: string | null
           tier?: Database["public"]["Enums"]["tier_type"] | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           current_week?: number | null
+          description?: string | null
           id?: string
+          name?: string
           plan_data?: Json | null
           race_type?: Database["public"]["Enums"]["race_type"] | null
           recalibration_needed?: boolean | null
           runner_id?: string
           start_date?: string | null
+          status?: string | null
           tier?: Database["public"]["Enums"]["tier_type"] | null
           updated_at?: string
         }
@@ -692,6 +701,17 @@ export type Database = {
               training_days_param: number
               race_date_param: string
               training_start_date_param: string
+            }
+          | {
+              runner_uuid: string
+              race_type_param: Database["public"]["Enums"]["race_type"]
+              experience_level_param: Database["public"]["Enums"]["experience_level_type"]
+              fitness_score_param: number
+              training_days_param: number
+              race_date_param: string
+              training_start_date_param: string
+              plan_name_param?: string
+              plan_description_param?: string
             }
         Returns: string
       }

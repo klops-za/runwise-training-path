@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, User, RefreshCw, Target } from 'lucide-react';
+import { Calendar, User, RefreshCw, Target, FolderOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -28,6 +28,15 @@ const QuickActionsCard = ({ trainingPlan, generatingPlan, onGenerateTrainingPlan
         >
           <Calendar className="mr-2 h-4 w-4" />
           View Training Schedule
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          className="w-full justify-start"
+          onClick={() => navigate('/plans')}
+        >
+          <FolderOpen className="mr-2 h-4 w-4" />
+          Manage Training Plans
         </Button>
         
         <Button 
