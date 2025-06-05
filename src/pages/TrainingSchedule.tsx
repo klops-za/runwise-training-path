@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar, Clock, MapPin, CheckCircle, Circle, Info } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -294,10 +296,8 @@ const TrainingSchedule = () => {
   };
 
   const showWorkoutDetails = (workout: Workout) => {
-    const detailedDescription = getDetailedWorkoutDescription(workout);
-    
-    // For now, we'll use a simple alert. In a full implementation, you might want to use a modal
-    alert(`${workout.type} Training Session\n\n${detailedDescription.replace(/\*\*/g, '')}`);
+    // This function is no longer needed since we're using the Dialog component directly
+    return;
   };
 
   // Filter workouts for selected week
@@ -410,6 +410,7 @@ const TrainingSchedule = () => {
             weekWorkouts.map((workout) => {
               const displayDistance = getWorkoutDisplayDistance(workout);
               const displayDuration = getWorkoutDisplayDuration(workout);
+              const detailedDescription = getDetailedWorkoutDescription(workout);
               
               return (
                 <Card key={workout.id} className={`border transition-all duration-200 hover:shadow-md ${
@@ -473,15 +474,30 @@ const TrainingSchedule = () => {
                       </div>
 
                       <div className="flex flex-col space-y-2 ml-4">
-                        <Button 
-                          onClick={() => showWorkoutDetails(workout)}
-                          variant="outline" 
-                          size="sm" 
-                          className="border-border hover:bg-blue-50 dark:hover:bg-blue-950/50"
-                        >
-                          <Info className="h-4 w-4 mr-1" />
-                          Details
-                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="border-border hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                            >
+                              <Info className="h-4 w-4 mr-1" />
+                              Details
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle className="text-xl font-bold">
+                                {workout.type} Training Session
+                              </DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div className="whitespace-pre-line text-sm leading-relaxed">
+                                {detailedDescription.replace(/\*\*/g, '')}
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </div>
                   </CardContent>
