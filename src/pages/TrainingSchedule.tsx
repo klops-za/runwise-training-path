@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -296,7 +295,7 @@ const TrainingSchedule = () => {
     // Add structure-specific details if available
     let structureDetails = '';
     if (workout.details_json && isValidWorkoutStructure(workout.details_json)) {
-      const structure = workout.details_json as WorkoutStructureJson;
+      const structure = workout.details_json as unknown as WorkoutStructureJson;
       const mainSegment = structure.main[0];
       
       if (mainSegment?.reps && mainSegment?.distance) {
