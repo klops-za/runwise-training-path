@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Target, Zap } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
-import { isValidWorkoutStructure, type WorkoutStructureJson, generateWorkoutDescription, calculateWorkoutDistance } from '@/utils/workoutStructures';
+import { isValidWorkoutStructure, type WorkoutStructureJson, generateWorkoutDescription } from '@/utils/workoutStructures';
 
 type Workout = Database['public']['Tables']['workouts']['Row'];
 
@@ -34,15 +34,15 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // Use distance_target from database (already in km) if available
-      const calculatedDistanceKm = workout.distance_target || calculateWorkoutDistance(structure);
+      // Use distance_target from database (already in km) as primary source
+      const distanceKm = workout.distance_target;
       
       // Use the new unified description generator with distance in km
       const generatedDescription = generateWorkoutDescription(
         workout.type || 'Easy', 
         structure, 
         convertDistance,
-        calculatedDistanceKm
+        distanceKm
       );
       
       return generatedDescription || workout.description;
@@ -53,7 +53,7 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
   };
 
   const getDisplayDistance = () => {
-    // Use distance_target from database as primary source (already in km)
+    // Use distance_target from database as primary and only source (already in km)
     if (workout.distance_target) {
       return convertDistance(workout.distance_target);
     }

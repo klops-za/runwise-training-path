@@ -10,7 +10,6 @@ import {
   isValidWorkoutStructure,
   type WorkoutStructureJson,
   generateWorkoutDescription,
-  calculateWorkoutDistance,
   calculateWorkoutDuration
 } from '@/utils/workoutStructures';
 
@@ -23,7 +22,7 @@ interface TrainingStatusCardProps {
   currentWeek: number;
   generatingPlan: boolean;
   onGenerateTrainingPlan: () => void;
-  convertDistance: (distanceInMiles: number) => string;
+  convertDistance: (distanceInKiles: number) => string;
   onWorkoutUpdate?: () => void;
 }
 
@@ -37,65 +36,6 @@ const TrainingStatusCard = ({
   onWorkoutUpdate
 }: TrainingStatusCardProps) => {
   const { toast } = useToast();
-
-  // Helper function to calculate week within phase for progression
-  const getWeekInPhase = (workout: Workout, trainingPlan: TrainingPlan, allWorkouts: Workout[]) => {
-    if (!trainingPlan?.plan_data || !workout.phase) return { weekInPhase: 1, totalPhaseWeeks: 1 };
-    
-    const planData = trainingPlan.plan_data as any;
-    const baseWeeks = planData.base_weeks || 4;
-    const buildWeeks = planData.build_weeks || 6;
-    const peakWeeks = planData.peak_weeks || 4;
-    const taperWeeks = planData.taper_weeks || 1;
-    const trainingDaysPerWeek = planData.training_days || 3;
-    
-    // Get all workouts for this phase, sorted by week then by date
-    const phaseWorkouts = allWorkouts
-      .filter(w => w.phase === workout.phase)
-      .sort((a, b) => {
-        const weekDiff = (a.week_number || 0) - (b.week_number || 0);
-        if (weekDiff !== 0) return weekDiff;
-        return new Date(a.date || '').getTime() - new Date(b.date || '').getTime();
-      });
-    
-    // Find the index of this workout within its phase
-    const workoutIndex = phaseWorkouts.findIndex(w => w.id === workout.id);
-    
-    // Calculate which week within the phase this workout belongs to
-    // Each week has trainingDaysPerWeek workouts
-    const weekInPhase = Math.floor(workoutIndex / trainingDaysPerWeek) + 1;
-    
-    // Get total weeks for this phase
-    let totalPhaseWeeks = 1;
-    switch (workout.phase) {
-      case 'Base':
-        totalPhaseWeeks = baseWeeks;
-        break;
-      case 'Build':
-        totalPhaseWeeks = buildWeeks;
-        break;
-      case 'Peak':
-        totalPhaseWeeks = peakWeeks;
-        break;
-      case 'Taper':
-        totalPhaseWeeks = taperWeeks;
-        break;
-    }
-    
-    console.log('Week in phase calculation:', {
-      workoutId: workout.id,
-      phase: workout.phase,
-      workoutIndex,
-      trainingDaysPerWeek,
-      weekInPhase,
-      totalPhaseWeeks
-    });
-    
-    return { 
-      weekInPhase: Math.max(1, Math.min(weekInPhase, totalPhaseWeeks)), 
-      totalPhaseWeeks 
-    };
-  };
 
   const getWorkoutDisplayDescription = (workout: Workout) => {
     if (!workout.details_json) {
@@ -111,18 +51,15 @@ const TrainingStatusCard = ({
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // Use the database distance_target directly (already in km) if available
-      const calculatedDistanceKm = workout.distance_target || calculateWorkoutDistance(
-        structure, 
-        workout.distance_target
-      );
+      // Use the database distance_target directly (already in km)
+      const distanceKm = workout.distance_target;
       
       // Use the new unified description generator with distance in km
       const generatedDescription = generateWorkoutDescription(
         workout.type || 'Easy', 
         structure, 
         convertDistance,
-        calculatedDistanceKm
+        distanceKm
       );
       
       return generatedDescription || workout.description || 'No description available';
@@ -133,21 +70,9 @@ const TrainingStatusCard = ({
   };
 
   const getWorkoutDisplayDistance = (workout: Workout): string | null => {
-    // Use distance_target from database as primary source (already in km)
+    // Use distance_target from database as primary and only source (already in km)
     if (workout.distance_target) {
       return convertDistance(workout.distance_target);
-    }
-    
-    // Fall back to calculation only if no distance_target
-    if (workout.details_json && isValidWorkoutStructure(workout.details_json)) {
-      try {
-        const structure = workout.details_json as WorkoutStructureJson;
-        const calculatedDistanceKm = calculateWorkoutDistance(structure);
-        return convertDistance(calculatedDistanceKm);
-      } catch (error) {
-        console.error('Error calculating workout distance:', error);
-        return null;
-      }
     }
     
     return null;
@@ -245,11 +170,6 @@ const TrainingStatusCard = ({
     }
 
     return `**Purpose:** ${description.purpose}\n\n**How to Execute:** ${description.structure}\n\n**Benefits:** ${description.benefits}${structureDetails}`;
-  };
-
-  const showWorkoutDetails = (workout: Workout) => {
-    // This function is no longer needed since we're using the Dialog component directly
-    return;
   };
 
   const toggleWorkoutStatus = async (workoutId: string) => {

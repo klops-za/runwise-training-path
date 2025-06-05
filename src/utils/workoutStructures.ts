@@ -179,7 +179,7 @@ export const generateWorkoutDescription = (
   workoutType: WorkoutType,
   structureJson: WorkoutStructureJson,
   convertDistance?: (distance: number) => string,
-  calculatedDistanceKm?: number
+  distanceKm?: number
 ): string => {
   // Use description from structure if available
   if (structureJson.description) {
@@ -202,9 +202,9 @@ export const generateWorkoutDescription = (
       break;
     
     case 'Tempo':
-      if (calculatedDistanceKm && convertDistance) {
-        // Use calculated progressive distance (already in km)
-        const distanceStr = convertDistance(calculatedDistanceKm);
+      if (distanceKm && convertDistance) {
+        // Use the provided distance parameter (already in km from database)
+        const distanceStr = convertDistance(distanceKm);
         mainDescription = `${distanceStr} @ ${mainSegment?.pace || PACE_ZONES.TEMPO} pace`;
       } else if (mainSegment?.distance) {
         // Use distance from structure (already in km)
@@ -225,9 +225,9 @@ export const generateWorkoutDescription = (
       break;
     
     case 'Long':
-      if (calculatedDistanceKm && convertDistance) {
-        // Use calculated progressive distance (already in km)
-        const distanceStr = convertDistance(calculatedDistanceKm);
+      if (distanceKm && convertDistance) {
+        // Use the provided distance parameter (already in km from database)
+        const distanceStr = convertDistance(distanceKm);
         if (mainSegment?.segments && mainSegment.segments.length > 1) {
           mainDescription = `${distanceStr} long run with varied pace segments`;
         } else {
@@ -245,9 +245,9 @@ export const generateWorkoutDescription = (
       break;
     
     case 'Easy':
-      if (calculatedDistanceKm && convertDistance) {
-        // Use calculated progressive distance (already in km)
-        const distanceStr = convertDistance(calculatedDistanceKm);
+      if (distanceKm && convertDistance) {
+        // Use the provided distance parameter (already in km from database)
+        const distanceStr = convertDistance(distanceKm);
         mainDescription = `${distanceStr} easy run @ ${mainSegment?.pace || PACE_ZONES.EASY} pace`;
       } else if (mainSegment?.distance) {
         // Use distance from structure (already in km)
@@ -259,9 +259,9 @@ export const generateWorkoutDescription = (
       break;
     
     case 'Recovery':
-      if (calculatedDistanceKm && convertDistance) {
-        // Use calculated progressive distance (already in km)
-        const distanceStr = convertDistance(calculatedDistanceKm);
+      if (distanceKm && convertDistance) {
+        // Use the provided distance parameter (already in km from database)
+        const distanceStr = convertDistance(distanceKm);
         mainDescription = `${distanceStr} recovery run @ ${mainSegment?.pace || PACE_ZONES.RECOVERY} pace`;
       } else if (mainSegment?.distance) {
         // Use distance from structure (already in km)
