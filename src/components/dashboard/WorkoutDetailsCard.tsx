@@ -1,9 +1,8 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Target, Zap } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
-import { isValidWorkoutStructure, type WorkoutStructureJson, generateWorkoutDescription } from '@/utils/workoutStructures';
+import { isValidWorkoutStructure, type WorkoutStructureJson, generateWorkoutDescription, calculateWorkoutDistance } from '@/utils/workoutStructures';
 
 type Workout = Database['public']['Tables']['workouts']['Row'];
 
@@ -34,11 +33,16 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // Use the new unified description generator with race type context
+      // For WorkoutDetailsCard, we don't have training plan context for progression
+      // So we'll calculate distance without progression (use base values)
+      const calculatedDistance = calculateWorkoutDistance(structure);
+      
+      // Use the new unified description generator with race type context and calculated distance
       const generatedDescription = generateWorkoutDescription(
         workout.type || 'Easy', 
         structure, 
-        convertDistance
+        convertDistance,
+        calculatedDistance
       );
       
       return generatedDescription || workout.description;

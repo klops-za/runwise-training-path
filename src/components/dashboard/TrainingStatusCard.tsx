@@ -77,11 +77,22 @@ const TrainingStatusCard = ({
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // Use the new unified description generator with race type context
+      // Get week progression information for this workout and calculate progressive distance
+      const { weekInPhase, totalPhaseWeeks } = trainingPlan ? getWeekInPhase(workout, trainingPlan) : { weekInPhase: 1, totalPhaseWeeks: 1 };
+      
+      const calculatedDistance = calculateWorkoutDistance(
+        structure, 
+        workout.distance_target,
+        weekInPhase,
+        totalPhaseWeeks
+      );
+      
+      // Use the new unified description generator with race type context and calculated distance
       const generatedDescription = generateWorkoutDescription(
         workout.type || 'Easy', 
         structure, 
-        convertDistance
+        convertDistance,
+        calculatedDistance
       );
       
       return generatedDescription || workout.description || 'No description available';

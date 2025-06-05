@@ -173,11 +173,22 @@ const TrainingSchedule = () => {
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // Use the enhanced generateWorkoutDescription function
+      // Get week progression information for this workout and calculate progressive distance
+      const { weekInPhase, totalPhaseWeeks } = trainingPlan ? getWeekInPhase(workout, trainingPlan) : { weekInPhase: 1, totalPhaseWeeks: 1 };
+      
+      const calculatedDistance = calculateWorkoutDistance(
+        structure, 
+        workout.distance_target,
+        weekInPhase,
+        totalPhaseWeeks
+      );
+      
+      // Use the enhanced generateWorkoutDescription function with calculated distance
       const generatedDescription = generateWorkoutDescription(
         workout.type as any,
         structure,
-        convertDistance
+        convertDistance,
+        calculatedDistance
       );
       
       return generatedDescription;
