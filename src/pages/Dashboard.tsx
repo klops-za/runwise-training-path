@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -241,10 +240,9 @@ const Dashboard = () => {
     );
   }
 
-  // Calculate days until race from the active training plan's race date or runner's race date
-  const raceDate = trainingPlan?.plan_data?.race_date || runnerData.race_date;
-  const daysUntilRace = raceDate 
-    ? Math.ceil((new Date(raceDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24))
+  // Calculate days until race - use runner's race date as the source of truth
+  const daysUntilRace = runnerData.race_date 
+    ? Math.ceil((new Date(runnerData.race_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))
     : null;
 
   // Calculate training progress from the active training plan
@@ -285,6 +283,7 @@ const Dashboard = () => {
 
         <StatsGrid 
           runnerData={runnerData}
+          trainingPlan={trainingPlan}
           daysUntilRace={daysUntilRace}
           currentWeek={currentWeek}
           totalWeeks={totalWeeks}

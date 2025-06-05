@@ -5,16 +5,21 @@ import { Calendar, Target, TrendingUp } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type RunnerData = Database['public']['Tables']['runners']['Row'];
+type TrainingPlan = Database['public']['Tables']['training_plans']['Row'];
 
 interface StatsGridProps {
   runnerData: RunnerData;
+  trainingPlan?: TrainingPlan | null;
   daysUntilRace: number | null;
   currentWeek: number;
   totalWeeks: number;
   progressPercentage: number;
 }
 
-const StatsGrid = ({ runnerData, daysUntilRace, currentWeek, totalWeeks, progressPercentage }: StatsGridProps) => {
+const StatsGrid = ({ runnerData, trainingPlan, daysUntilRace, currentWeek, totalWeeks, progressPercentage }: StatsGridProps) => {
+  // Use race goal from active training plan if available, otherwise from runner data
+  const activeRaceGoal = trainingPlan?.race_type || runnerData.race_goal;
+
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <Card>
@@ -26,7 +31,7 @@ const StatsGrid = ({ runnerData, daysUntilRace, currentWeek, totalWeeks, progres
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-foreground">
-            {runnerData.race_goal || 'Not Set'}
+            {activeRaceGoal || 'Not Set'}
           </div>
           <p className="text-sm text-muted-foreground">
             {daysUntilRace ? `${daysUntilRace} days to go` : 'Set your race date'}
