@@ -51,15 +51,13 @@ const TrainingStatusCard = ({
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // Use the database distance_target directly (already in km)
-      const distanceKm = workout.distance_target;
-      
-      // Use the new unified description generator with distance in km
+      // The database now calculates progressive distances and updates the structure JSON
+      // Use the distance from the structure's main segment as it's now progressive
       const generatedDescription = generateWorkoutDescription(
         workout.type || 'Easy', 
         structure, 
         convertDistance,
-        distanceKm
+        workout.distance_target // Fallback to distance_target if needed
       );
       
       return generatedDescription || workout.description || 'No description available';
@@ -70,7 +68,7 @@ const TrainingStatusCard = ({
   };
 
   const getWorkoutDisplayDistance = (workout: Workout): string | null => {
-    // Use distance_target from database as primary and only source (already in km)
+    // Use distance_target from database as the primary source (now properly progressive)
     if (workout.distance_target) {
       return convertDistance(workout.distance_target);
     }
