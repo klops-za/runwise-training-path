@@ -349,7 +349,7 @@ export const calculateWorkoutDistance = (
     totalDistance += calculateDistanceFromTime(structureJson.cooldown.duration, cooldownPace);
   }
   
-  return totalDistance;
+  return Math.round(totalDistance * 10) / 10; // Round to 1 decimal place
 };
 
 export const calculateWorkoutDuration = (
@@ -372,19 +372,19 @@ export const calculateWorkoutDuration = (
   // Calculate main segment duration
   if (mainSegment?.reps && mainSegment?.duration) {
     // For interval workouts, calculate total time including rest
-    const workTime = mainSegment.reps * mainSegment.duration / 60; // convert seconds to minutes
-    const restTime = (mainSegment.reps - 1) * (mainSegment.rest || 90) / 60;
+    const workTime = mainSegment.reps * (mainSegment.duration / 60); // convert seconds to minutes
+    const restTime = (mainSegment.reps - 1) * ((mainSegment.rest || 90) / 60); // convert seconds to minutes
     totalDuration += workTime + restTime;
   } else if (mainSegment?.segments) {
     // For segmented workouts, sum all segment durations
     const segmentDuration = mainSegment.segments.reduce((sum, segment) => {
       if (segment.duration) {
-        return sum + segment.duration / 60; // convert seconds to minutes
+        return sum + (segment.duration / 60); // convert seconds to minutes
       } else if (segment.distance && segment.pace) {
         // Calculate time from distance and pace
         const paceSecondsPerMile = paceToSecondsPerMile(segment.pace);
         const timeSeconds = segment.distance * paceSecondsPerMile;
-        return sum + timeSeconds / 60; // convert to minutes
+        return sum + (timeSeconds / 60); // convert to minutes
       }
       return sum;
     }, 0);
