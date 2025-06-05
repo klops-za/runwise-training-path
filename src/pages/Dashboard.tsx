@@ -198,12 +198,12 @@ const Dashboard = () => {
     }
   };
 
-  const convertDistance = (distanceInMiles: number) => {
-    if (!runnerData?.preferred_unit || runnerData.preferred_unit === 'mi') {
-      return `${distanceInMiles.toFixed(1)} miles`;
-    } else {
-      const distanceInKm = distanceInMiles * 1.60934;
+  const convertDistance = (distanceInKm: number) => {
+    if (!runnerData?.preferred_unit || runnerData.preferred_unit === 'km') {
       return `${distanceInKm.toFixed(1)} km`;
+    } else {
+      const distanceInMiles = distanceInKm * 0.621371;
+      return `${distanceInMiles.toFixed(1)} miles`;
     }
   };
 
