@@ -30,6 +30,7 @@ const TrainingSchedule = () => {
   const [trainingPlan, setTrainingPlan] = useState<TrainingPlan | null>(null);
   const [runner, setRunner] = useState<Runner | null>(null);
   const [loading, setLoading] = useState(true);
+  const [totalWeeks, setTotalWeeks] = useState(16); // Default to 16, will be updated
 
   useEffect(() => {
     const fetchTrainingData = async () => {
@@ -75,12 +76,24 @@ const TrainingSchedule = () => {
 
         setTrainingPlan(plan);
 
+        // Calculate total weeks from plan data
+        if (plan.plan_data) {
+          const planData = plan.plan_data as any;
+          const baseWeeks = planData.base_weeks || 4;
+          const buildWeeks = planData.build_weeks || 6;
+          const peakWeeks = planData.peak_weeks || 4;
+          const taperWeeks = planData.taper_weeks || 1;
+          const calculatedTotalWeeks = baseWeeks + buildWeeks + peakWeeks + taperWeeks;
+          setTotalWeeks(calculatedTotalWeeks);
+          console.log('Calculated total weeks:', calculatedTotalWeeks);
+        }
+
         // Calculate current week based on training start date
         if (plan.start_date) {
           const startDate = new Date(plan.start_date);
           const currentDate = new Date();
           const weeksDiff = Math.floor((currentDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-          const currentWeek = Math.max(1, Math.min(16, weeksDiff + 1));
+          const currentWeek = Math.max(1, Math.min(totalWeeks, weeksDiff + 1));
           setSelectedWeek(currentWeek);
         }
 
@@ -411,7 +424,7 @@ const TrainingSchedule = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Training Schedule</h1>
-          <p className="text-muted-foreground">Week {selectedWeek} of 16 - {trainingPlan?.race_type || 'Running'} Training</p>
+          <p className="text-muted-foreground">Week {selectedWeek} of {totalWeeks} - {trainingPlan?.race_type || 'Running'} Training</p>
         </div>
 
         {/* Week Navigation */}
@@ -432,8 +445,8 @@ const TrainingSchedule = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setSelectedWeek(Math.min(16, selectedWeek + 1))}
-              disabled={selectedWeek === 16}
+              onClick={() => setSelectedWeek(Math.min(totalWeeks, selectedWeek + 1))}
+              disabled={selectedWeek === totalWeeks}
               className="border-border"
             >
               Next Week
