@@ -144,7 +144,7 @@ const TrainingSchedule = () => {
         return workout.description || 'No description available';
       }
       
-      const structure = detailsData as WorkoutStructureJson;
+      const structure = detailsData as unknown as WorkoutStructureJson;
       
       // Use the database distance_target directly (already in km)
       const distanceKm = workout.distance_target;
@@ -180,7 +180,7 @@ const TrainingSchedule = () => {
     }
     
     try {
-      const structure = workout.details_json as WorkoutStructureJson;
+      const structure = workout.details_json as unknown as WorkoutStructureJson;
       return calculateWorkoutDuration(structure, workout.duration);
     } catch (error) {
       console.error('Error calculating workout duration:', error);

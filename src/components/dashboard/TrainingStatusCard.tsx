@@ -22,7 +22,7 @@ interface TrainingStatusCardProps {
   currentWeek: number;
   generatingPlan: boolean;
   onGenerateTrainingPlan: () => void;
-  convertDistance: (distanceInKiles: number) => string;
+  convertDistance: (distanceInKm: number) => string;
   onWorkoutUpdate?: () => void;
 }
 
@@ -49,7 +49,7 @@ const TrainingStatusCard = ({
         return workout.description || 'No description available';
       }
       
-      const structure = detailsData as WorkoutStructureJson;
+      const structure = detailsData as unknown as WorkoutStructureJson;
       
       // The database now calculates progressive distances and updates the structure JSON
       // Use the distance from the structure's main segment as it's now progressive
@@ -83,7 +83,7 @@ const TrainingStatusCard = ({
     }
     
     try {
-      const structure = workout.details_json as WorkoutStructureJson;
+      const structure = workout.details_json as unknown as WorkoutStructureJson;
       return calculateWorkoutDuration(structure, workout.duration);
     } catch (error) {
       console.error('Error calculating workout duration:', error);
@@ -155,7 +155,7 @@ const TrainingStatusCard = ({
     // Add structure-specific details if available
     let structureDetails = '';
     if (workout.details_json && isValidWorkoutStructure(workout.details_json)) {
-      const structure = workout.details_json as WorkoutStructureJson;
+      const structure = workout.details_json as unknown as WorkoutStructureJson;
       const mainSegment = structure.main[0];
       
       if (mainSegment?.reps && mainSegment?.distance) {

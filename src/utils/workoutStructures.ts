@@ -27,6 +27,23 @@ export interface WorkoutStructureJson {
   min_distance?: number;
 }
 
+// Pace zones for training (time per km in minutes)
+export const PACE_ZONES = {
+  EASY: { min: 6.0, max: 7.0 },
+  TEMPO: { min: 4.5, max: 5.5 },
+  INTERVAL: { min: 3.5, max: 4.5 },
+  RECOVERY: { min: 7.0, max: 8.0 }
+};
+
+// Effort levels for different workout types
+export const EFFORT_LEVELS = {
+  EASY: 'conversational',
+  TEMPO: 'comfortably hard',
+  INTERVAL: 'hard',
+  RECOVERY: 'very easy',
+  LONG: 'steady'
+};
+
 export const isValidWorkoutStructure = (data: any): boolean => {
   if (!data || typeof data !== 'object') return false;
   
@@ -107,19 +124,30 @@ export const generateWorkoutDescription = (
       const mainSegment = structure.main[0];
       
       if (mainSegment.reps && mainSegment.distance) {
-        // Interval workout
-        const repDistance = convertDistance(mainSegment.distance);
-        const restTime = mainSegment.rest ? `${mainSegment.rest}s rest` : 'recovery';
-        parts.push(`${mainSegment.reps} × ${repDistance} with ${restTime}`);
+        // Interval workout - show distance in meters for intervals
+        if (workoutType.toLowerCase() === 'interval') {
+          const repDistanceInMeters = Math.round(mainSegment.distance * 1000);
+          const restTime = mainSegment.rest ? `${mainSegment.rest}s rest` : 'recovery';
+          parts.push(`${mainSegment.reps} × ${repDistanceInMeters}m with ${restTime}`);
+        } else {
+          const repDistance = convertDistance(mainSegment.distance);
+          const restTime = mainSegment.rest ? `${mainSegment.rest}s rest` : 'recovery';
+          parts.push(`${mainSegment.reps} × ${repDistance} with ${restTime}`);
+        }
       } else if (mainSegment.distance) {
         // Continuous run - use the calculated distance from the database
         const mainDistance = convertDistance(mainSegment.distance);
         parts.push(`${mainDistance} ${workoutType.toLowerCase()} run`);
       } else if (mainSegment.segments && mainSegment.segments.length > 1) {
         // Complex structured workout
-        const segmentDescriptions = mainSegment.segments.map(seg => 
-          `${convertDistance(seg.distance)} at ${seg.pace || 'target pace'}`
-        );
+        const segmentDescriptions = mainSegment.segments.map(seg => {
+          if (workoutType.toLowerCase() === 'interval') {
+            const segDistanceInMeters = Math.round(seg.distance * 1000);
+            return `${segDistanceInMeters}m at ${seg.pace || 'target pace'}`;
+          } else {
+            return `${convertDistance(seg.distance)} at ${seg.pace || 'target pace'}`;
+          }
+        });
         parts.push(segmentDescriptions.join(' + '));
       } else if (distanceKm) {
         // Fallback to provided distance

@@ -32,7 +32,7 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
         return workout.description;
       }
       
-      const structure = detailsData as WorkoutStructureJson;
+      const structure = detailsData as unknown as WorkoutStructureJson;
       
       // The database now properly calculates progressive distances and updates structure JSON
       // Use the updated structure with progressive main distances
