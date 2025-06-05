@@ -47,15 +47,23 @@ const TrainingStatusCard = ({
     const buildWeeks = planData.build_weeks || 6;
     const peakWeeks = planData.peak_weeks || 4;
     const taperWeeks = planData.taper_weeks || 1;
+    const trainingDaysPerWeek = planData.training_days || 3;
     
-    // Get all workouts for this phase to determine the week within phase
+    // Get all workouts for this phase, sorted by week then by date
     const phaseWorkouts = allWorkouts
       .filter(w => w.phase === workout.phase)
-      .sort((a, b) => (a.week_number || 0) - (b.week_number || 0));
+      .sort((a, b) => {
+        const weekDiff = (a.week_number || 0) - (b.week_number || 0);
+        if (weekDiff !== 0) return weekDiff;
+        return new Date(a.date || '').getTime() - new Date(b.date || '').getTime();
+      });
     
-    // Find the position of this workout within its phase
+    // Find the index of this workout within its phase
     const workoutIndex = phaseWorkouts.findIndex(w => w.id === workout.id);
-    const weekInPhase = Math.floor(workoutIndex / 7) + 1; // Assuming 7 workouts per week
+    
+    // Calculate which week within the phase this workout belongs to
+    // Each week has trainingDaysPerWeek workouts
+    const weekInPhase = Math.floor(workoutIndex / trainingDaysPerWeek) + 1;
     
     // Get total weeks for this phase
     let totalPhaseWeeks = 1;
@@ -73,6 +81,15 @@ const TrainingStatusCard = ({
         totalPhaseWeeks = taperWeeks;
         break;
     }
+    
+    console.log('Week in phase calculation:', {
+      workoutId: workout.id,
+      phase: workout.phase,
+      workoutIndex,
+      trainingDaysPerWeek,
+      weekInPhase,
+      totalPhaseWeeks
+    });
     
     return { 
       weekInPhase: Math.max(1, Math.min(weekInPhase, totalPhaseWeeks)), 

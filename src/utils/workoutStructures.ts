@@ -344,11 +344,20 @@ export const calculateWorkoutDistance = (
   
   // Progressive distance calculation if min/max distances are available
   if (structureJson.min_distance && structureJson.max_distance && weekInPhase !== undefined && totalPhaseWeeks !== undefined && totalPhaseWeeks > 1) {
-    const progressionRatio = (weekInPhase - 1) / (totalPhaseWeeks - 1); // 0 to 1 progression
+    // Ensure weekInPhase is at least 1 and at most totalPhaseWeeks
+    const safeWeekInPhase = Math.max(1, Math.min(weekInPhase, totalPhaseWeeks));
+    
+    // Calculate progression ratio (0 to 1)
+    const progressionRatio = (safeWeekInPhase - 1) / (totalPhaseWeeks - 1);
+    
+    // Progressive distance in km
     const progressiveDistanceKm = structureJson.min_distance + (progressionRatio * (structureJson.max_distance - structureJson.min_distance));
+    
+    // Convert km to miles for return value
     const progressiveDistanceMiles = progressiveDistanceKm * 0.621371;
+    
     console.log('Using progressive distance:', {
-      weekInPhase,
+      safeWeekInPhase,
       totalPhaseWeeks,
       progressionRatio,
       minDistanceKm: structureJson.min_distance,
