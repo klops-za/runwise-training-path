@@ -22,13 +22,20 @@ type Workout = Database['public']['Tables']['workouts']['Row'];
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [generatingPlan, setGeneratingPlan] = useState(false);
   const [runnerData, setRunnerData] = useState<RunnerData | null>(null);
   const [trainingPlan, setTrainingPlan] = useState<TrainingPlan | null>(null);
   const [currentWeekWorkouts, setCurrentWeekWorkouts] = useState<Workout[]>([]);
+
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/');
+    }
+  }, [user, authLoading, navigate]);
 
   const trainingPaces = runnerData?.fitness_score 
     ? calculateTrainingPaces(runnerData.fitness_score)
@@ -207,7 +214,7 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />

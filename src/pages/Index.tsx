@@ -7,12 +7,12 @@ import { ArrowRight, Target, Calendar, Trophy, BarChart3, Gift } from 'lucide-re
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import AuthForm from '@/components/AuthForm';
+import Navigation from '@/components/Navigation';
 
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [profileLoading, setProfileLoading] = useState(true);
-  const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
     const checkUserProfile = async () => {
@@ -25,7 +25,6 @@ const Index = () => {
             .maybeSingle();
 
           if (!error && profile) {
-            setHasProfile(true);
             // Redirect existing users directly to dashboard
             navigate('/dashboard');
             return;
@@ -49,7 +48,7 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
-  if (loading || profileLoading) {
+  if (loading || (user && profileLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -60,6 +59,8 @@ const Index = () => {
   // This component will only render for non-authenticated users
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
+      <Navigation />
+      
       <div className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
