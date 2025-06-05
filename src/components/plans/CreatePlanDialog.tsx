@@ -37,7 +37,6 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
     trainingDays: 5,
     raceDate: undefined as Date | undefined,
     trainingStartDate: new Date(),
-    fitnessScore: 50,
     trainingIntensity: 'Moderate' as IntensityType,
   });
 
@@ -50,7 +49,6 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
       trainingDays: 5,
       raceDate: undefined,
       trainingStartDate: new Date(),
-      fitnessScore: 50,
       trainingIntensity: 'Moderate' as IntensityType,
     });
   };
@@ -68,11 +66,30 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
     setCreating(true);
 
     try {
+      // Get the user's current fitness score from their profile
+      const { data: runnerData, error: runnerError } = await supabase
+        .from('runners')
+        .select('fitness_score')
+        .eq('id', user.id)
+        .single();
+
+      if (runnerError) {
+        console.error('Error fetching runner data:', runnerError);
+        toast({
+          title: "Error",
+          description: "Failed to fetch your profile data. Please ensure your profile is complete.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const fitnessScore = runnerData?.fitness_score || 50; // Default to 50 if no fitness score
+
       const { data: planId, error } = await supabase.rpc('generate_training_plan', {
         runner_uuid: user.id,
         race_type_param: formData.raceType,
         experience_level_param: formData.experienceLevel,
-        fitness_score_param: formData.fitnessScore,
+        fitness_score_param: fitnessScore,
         training_days_param: formData.trainingDays,
         race_date_param: formData.raceDate.toISOString().split('T')[0],
         training_start_date_param: formData.trainingStartDate.toISOString().split('T')[0],
@@ -236,32 +253,18 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="fitnessScore">Fitness Score (1-100)</Label>
-              <Input
-                id="fitnessScore"
-                type="number"
-                min="1"
-                max="100"
-                value={formData.fitnessScore}
-                onChange={(e) => setFormData({ ...formData, fitnessScore: parseInt(e.target.value) || 50 })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="intensity">Training Intensity</Label>
-              <Select value={formData.trainingIntensity} onValueChange={(value: IntensityType) => setFormData({ ...formData, trainingIntensity: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Moderate">Moderate</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="intensity">Training Intensity</Label>
+            <Select value={formData.trainingIntensity} onValueChange={(value: IntensityType) => setFormData({ ...formData, trainingIntensity: value })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Low">Low</SelectItem>
+                <SelectItem value="Moderate">Moderate</SelectItem>
+                <SelectItem value="High">High</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end space-x-4 pt-4">
