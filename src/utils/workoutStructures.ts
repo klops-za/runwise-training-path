@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -309,9 +310,33 @@ export const generateWorkoutDescription = (
 
 export const calculateWorkoutDistance = (
   structureJson: WorkoutStructureJson,
-  baseDistance?: number
+  baseDistance?: number,
+  weekInPhase?: number,
+  totalPhaseWeeks?: number
 ): number => {
-  console.log('calculateWorkoutDistance called with:', structureJson);
+  console.log('calculateWorkoutDistance called with:', {
+    structureJson,
+    baseDistance,
+    weekInPhase,
+    totalPhaseWeeks
+  });
+  
+  // Progressive distance calculation if min/max distances are available
+  if (structureJson.min_distance && structureJson.max_distance && weekInPhase !== undefined && totalPhaseWeeks !== undefined && totalPhaseWeeks > 1) {
+    const progressionRatio = (weekInPhase - 1) / (totalPhaseWeeks - 1); // 0 to 1 progression
+    const progressiveDistanceKm = structureJson.min_distance + (progressionRatio * (structureJson.max_distance - structureJson.min_distance));
+    const progressiveDistanceMiles = progressiveDistanceKm * 0.621371;
+    console.log('Using progressive distance:', {
+      weekInPhase,
+      totalPhaseWeeks,
+      progressionRatio,
+      minDistanceKm: structureJson.min_distance,
+      maxDistanceKm: structureJson.max_distance,
+      progressiveDistanceKm,
+      progressiveDistanceMiles
+    });
+    return Math.round(progressiveDistanceMiles * 10) / 10;
+  }
   
   // Use min_distance from structure if available (convert km to miles)
   if (structureJson.min_distance) {
