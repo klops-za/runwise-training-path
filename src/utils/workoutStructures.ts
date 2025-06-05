@@ -59,6 +59,37 @@ export const EFFORT_LEVELS = {
   MAXIMUM: 'Maximum'
 } as const;
 
+// Helper function to convert pace string to seconds per mile
+const paceToSecondsPerMile = (pace: string): number => {
+  // Handle different pace formats
+  if (pace.includes(':')) {
+    const [minutes, seconds] = pace.split(':').map(Number);
+    return (minutes * 60) + seconds;
+  }
+  
+  // Default pace mappings (in seconds per mile)
+  const paceMap: { [key: string]: number } = {
+    'recovery': 600, // 10:00/mile
+    'easy': 540,     // 9:00/mile
+    'aerobic': 510,  // 8:30/mile
+    'tempo': 480,    // 8:00/mile
+    'threshold': 480, // 8:00/mile
+    'goal': 450,     // 7:30/mile
+    'interval': 420, // 7:00/mile
+    'mile': 390,     // 6:30/mile
+    'vo2max': 390    // 6:30/mile
+  };
+  
+  return paceMap[pace.toLowerCase()] || 540; // Default to easy pace
+};
+
+// Helper function to calculate distance based on time and pace
+const calculateDistanceFromTime = (timeMinutes: number, pace: string): number => {
+  const paceSecondsPerMile = paceToSecondsPerMile(pace);
+  const timeSeconds = timeMinutes * 60;
+  return timeSeconds / paceSecondsPerMile; // Returns distance in miles
+};
+
 // Helper function to convert distance to meters with proper rounding
 const convertDistanceToMeters = (distanceInMiles: number): string => {
   const meters = distanceInMiles * 1609.34;
@@ -277,31 +308,48 @@ export const calculateWorkoutDistance = (
     return structureJson.min_distance;
   }
 
+  let totalDistance = 0;
   const mainSegment = structureJson.main[0];
   
-  // For interval workouts, calculate total distance including reps
+  // Calculate warmup distance
+  if (structureJson.warmup?.duration) {
+    const warmupPace = structureJson.warmup.pace || PACE_ZONES.EASY;
+    totalDistance += calculateDistanceFromTime(structureJson.warmup.duration, warmupPace);
+  }
+  
+  // Calculate main segment distance
   if (mainSegment?.reps && mainSegment?.distance) {
-    const intervalDistance = mainSegment.reps * mainSegment.distance;
-    const warmupDistance = structureJson.warmup?.duration ? structureJson.warmup.duration / 10 : 0; // rough conversion
-    const cooldownDistance = structureJson.cooldown?.duration ? structureJson.cooldown.duration / 10 : 0; // rough conversion
-    return intervalDistance + warmupDistance + cooldownDistance;
+    // For interval workouts, use the specified distance times reps
+    totalDistance += mainSegment.reps * mainSegment.distance;
+  } else if (mainSegment?.segments) {
+    // For segmented workouts, sum all segments
+    const segmentDistance = mainSegment.segments.reduce((sum, segment) => {
+      if (segment.distance) {
+        return sum + segment.distance;
+      } else if (segment.duration && segment.pace) {
+        return sum + calculateDistanceFromTime(segment.duration / 60, segment.pace);
+      }
+      return sum;
+    }, 0);
+    totalDistance += segmentDistance > 0 ? segmentDistance : (baseDistance || 3);
+  } else if (mainSegment?.distance) {
+    // Use distance from main segment if available
+    totalDistance += mainSegment.distance;
+  } else if (mainSegment?.duration && mainSegment?.pace) {
+    // Calculate distance from duration and pace
+    totalDistance += calculateDistanceFromTime(mainSegment.duration / 60, mainSegment.pace);
+  } else {
+    // Fall back to base distance for main segment
+    totalDistance += baseDistance || 3;
   }
   
-  // For segmented workouts, sum all segments
-  if (mainSegment?.segments) {
-    const segmentDistance = mainSegment.segments.reduce((sum, segment) => 
-      sum + (segment.distance || 0), 0
-    );
-    return segmentDistance > 0 ? segmentDistance : (baseDistance || 3);
+  // Calculate cooldown distance
+  if (structureJson.cooldown?.duration) {
+    const cooldownPace = structureJson.cooldown.pace || PACE_ZONES.EASY;
+    totalDistance += calculateDistanceFromTime(structureJson.cooldown.duration, cooldownPace);
   }
   
-  // Use distance from main segment if available
-  if (mainSegment?.distance) {
-    return mainSegment.distance;
-  }
-  
-  // Fall back to base distance
-  return baseDistance || 3;
+  return totalDistance;
 };
 
 export const calculateWorkoutDuration = (
@@ -313,24 +361,53 @@ export const calculateWorkoutDuration = (
     return structureJson.min_duration;
   }
 
-  const warmup = structureJson.warmup?.duration || 0;
-  const cooldown = structureJson.cooldown?.duration || 0;
+  let totalDuration = 0;
   const mainSegment = structureJson.main[0];
   
-  // For interval workouts, calculate total time including rest
+  // Add warmup duration
+  if (structureJson.warmup?.duration) {
+    totalDuration += structureJson.warmup.duration;
+  }
+  
+  // Calculate main segment duration
   if (mainSegment?.reps && mainSegment?.duration) {
+    // For interval workouts, calculate total time including rest
     const workTime = mainSegment.reps * mainSegment.duration / 60; // convert seconds to minutes
     const restTime = (mainSegment.reps - 1) * (mainSegment.rest || 90) / 60;
-    return warmup + workTime + restTime + cooldown;
+    totalDuration += workTime + restTime;
+  } else if (mainSegment?.segments) {
+    // For segmented workouts, sum all segment durations
+    const segmentDuration = mainSegment.segments.reduce((sum, segment) => {
+      if (segment.duration) {
+        return sum + segment.duration / 60; // convert seconds to minutes
+      } else if (segment.distance && segment.pace) {
+        // Calculate time from distance and pace
+        const paceSecondsPerMile = paceToSecondsPerMile(segment.pace);
+        const timeSeconds = segment.distance * paceSecondsPerMile;
+        return sum + timeSeconds / 60; // convert to minutes
+      }
+      return sum;
+    }, 0);
+    totalDuration += segmentDuration > 0 ? segmentDuration : (baseDuration || 30);
+  } else if (mainSegment?.duration) {
+    // Use duration from main segment if available (convert seconds to minutes)
+    totalDuration += mainSegment.duration / 60;
+  } else if (mainSegment?.distance && mainSegment?.pace) {
+    // Calculate duration from distance and pace
+    const paceSecondsPerMile = paceToSecondsPerMile(mainSegment.pace);
+    const timeSeconds = mainSegment.distance * paceSecondsPerMile;
+    totalDuration += timeSeconds / 60; // convert to minutes
+  } else {
+    // Fall back to base duration for main segment
+    totalDuration += baseDuration || 30;
   }
   
-  // For time-based segments
-  if (mainSegment?.duration) {
-    return warmup + mainSegment.duration + cooldown;
+  // Add cooldown duration
+  if (structureJson.cooldown?.duration) {
+    totalDuration += structureJson.cooldown.duration;
   }
   
-  // Fall back to base duration
-  return baseDuration || 30;
+  return Math.round(totalDuration);
 };
 
 export const isValidWorkoutStructure = (data: any): data is WorkoutStructureJson => {
