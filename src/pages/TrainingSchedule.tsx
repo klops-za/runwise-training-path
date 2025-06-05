@@ -121,6 +121,31 @@ const TrainingSchedule = () => {
     }
   };
 
+  // Helper function to calculate week within phase for progression
+  const getWeekInPhase = (workout: Workout, trainingPlan: TrainingPlan) => {
+    if (!trainingPlan?.plan_data) return { weekInPhase: 1, totalPhaseWeeks: 1 };
+    
+    const planData = trainingPlan.plan_data as any;
+    const baseWeeks = planData.base_weeks || 4;
+    const buildWeeks = planData.build_weeks || 6;
+    const peakWeeks = planData.peak_weeks || 4;
+    const taperWeeks = planData.taper_weeks || 1;
+    
+    const weekNumber = workout.week_number || 1;
+    
+    if (workout.phase === 'Base') {
+      return { weekInPhase: weekNumber, totalPhaseWeeks: baseWeeks };
+    } else if (workout.phase === 'Build') {
+      return { weekInPhase: weekNumber - baseWeeks, totalPhaseWeeks: buildWeeks };
+    } else if (workout.phase === 'Peak') {
+      return { weekInPhase: weekNumber - baseWeeks - buildWeeks, totalPhaseWeeks: peakWeeks };
+    } else if (workout.phase === 'Taper') {
+      return { weekInPhase: weekNumber - baseWeeks - buildWeeks - peakWeeks, totalPhaseWeeks: taperWeeks };
+    }
+    
+    return { weekInPhase: 1, totalPhaseWeeks: 1 };
+  };
+
   const getWorkoutDisplayDescription = (workout: Workout) => {
     if (!workout.details_json) {
       return workout.description || 'No description available';
@@ -157,7 +182,16 @@ const TrainingSchedule = () => {
     
     try {
       const structure = workout.details_json as WorkoutStructureJson;
-      const calculatedDistance = calculateWorkoutDistance(structure, workout.distance_target);
+      
+      // Get week progression information for this workout
+      const { weekInPhase, totalPhaseWeeks } = trainingPlan ? getWeekInPhase(workout, trainingPlan) : { weekInPhase: 1, totalPhaseWeeks: 1 };
+      
+      const calculatedDistance = calculateWorkoutDistance(
+        structure, 
+        workout.distance_target,
+        weekInPhase,
+        totalPhaseWeeks
+      );
       return convertDistance(calculatedDistance);
     } catch (error) {
       console.error('Error calculating workout distance:', error);
@@ -307,12 +341,21 @@ const TrainingSchedule = () => {
   const completedWorkouts = weekWorkouts.filter(w => w.status === 'Completed').length;
   const totalWorkouts = weekWorkouts.length;
   
-  // Calculate total distance using the new function
+  // Calculate total distance using the new progressive function
   const totalDistanceMiles = weekWorkouts.reduce((sum, workout) => {
     if (workout.details_json && isValidWorkoutStructure(workout.details_json)) {
       try {
         const structure = workout.details_json as WorkoutStructureJson;
-        const calculatedDistance = calculateWorkoutDistance(structure, workout.distance_target);
+        
+        // Get week progression information for this workout
+        const { weekInPhase, totalPhaseWeeks } = trainingPlan ? getWeekInPhase(workout, trainingPlan) : { weekInPhase: 1, totalPhaseWeeks: 1 };
+        
+        const calculatedDistance = calculateWorkoutDistance(
+          structure, 
+          workout.distance_target,
+          weekInPhase,
+          totalPhaseWeeks
+        );
         return sum + calculatedDistance;
       } catch (error) {
         console.error('Error calculating workout distance for summary:', error);
