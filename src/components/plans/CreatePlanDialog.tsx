@@ -29,6 +29,7 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
   const { user } = useAuth();
   const { toast } = useToast();
   const [creating, setCreating] = useState(false);
+  const [planDuration, setPlanDuration] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -46,6 +47,15 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
       fetchUserProfile();
     }
   }, [open, user]);
+
+  // Fetch plan duration when race type or experience level changes
+  useEffect(() => {
+    if (formData.raceType && formData.experienceLevel) {
+      fetchPlanDuration();
+    } else {
+      setPlanDuration(null);
+    }
+  }, [formData.raceType, formData.experienceLevel]);
 
   const fetchUserProfile = async () => {
     if (!user) return;
@@ -69,6 +79,27 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
     }
   };
 
+  const fetchPlanDuration = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('phase_durations')
+        .select('total_weeks')
+        .eq('race_type', formData.raceType)
+        .eq('experience_level', formData.experienceLevel)
+        .single();
+
+      if (!error && data) {
+        setPlanDuration(data.total_weeks);
+      } else {
+        console.error('Error fetching plan duration:', error);
+        setPlanDuration(16); // Fallback to 16 weeks
+      }
+    } catch (error) {
+      console.error('Error fetching plan duration:', error);
+      setPlanDuration(16); // Fallback to 16 weeks
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -80,6 +111,7 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
       trainingStartDate: new Date(),
       trainingIntensity: 'Moderate' as IntensityType,
     });
+    setPlanDuration(null);
   };
 
   const handleCreate = async () => {
@@ -114,8 +146,9 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
 
       const fitnessScore = runnerData?.fitness_score || 50; // Default to 50 if no fitness score
 
-      // Calculate race date - if not provided, use a standard 16-week plan from start date
-      const raceDate = formData.raceDate || new Date(formData.trainingStartDate.getTime() + (16 * 7 * 24 * 60 * 60 * 1000));
+      // Calculate race date - if not provided, use the plan duration from phase_durations table
+      const defaultWeeks = planDuration || 16;
+      const raceDate = formData.raceDate || new Date(formData.trainingStartDate.getTime() + (defaultWeeks * 7 * 24 * 60 * 60 * 1000));
 
       const { data: planId, error } = await supabase.rpc('generate_training_plan', {
         runner_uuid: user.id,
@@ -260,7 +293,10 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
                 </PopoverContent>
               </Popover>
               <p className="text-sm text-muted-foreground">
-                If no race date is selected, we'll generate a full 16-week plan
+                {planDuration 
+                  ? `If no race date is selected, we'll generate a ${planDuration}-week plan`
+                  : "Select race type and experience level to see plan duration"
+                }
               </p>
             </div>
 
