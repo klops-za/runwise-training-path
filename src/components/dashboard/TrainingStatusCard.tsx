@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -369,42 +368,6 @@ const TrainingStatusCard = ({
       </CardContent>
     </Card>
   );
-
-  const toggleWorkoutStatus = async (workoutId: string) => {
-    const workout = currentWeekWorkouts.find(w => w.id === workoutId);
-    if (!workout) return;
-
-    const newStatus = workout.status === 'Completed' ? 'Pending' : 'Completed';
-
-    try {
-      const { error } = await supabase
-        .from('workouts')
-        .update({ status: newStatus })
-        .eq('id', workoutId);
-
-      if (error) {
-        console.error('Error updating workout status:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update workout status.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Success",
-        description: `Workout marked as ${newStatus.toLowerCase()}.`,
-      });
-
-      // Call the callback to refresh data
-      if (onWorkoutUpdate) {
-        onWorkoutUpdate();
-      }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-    }
-  };
 };
 
 export default TrainingStatusCard;
