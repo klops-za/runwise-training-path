@@ -59,22 +59,6 @@ export const EFFORT_LEVELS = {
   MAXIMUM: 'Maximum'
 } as const;
 
-// Map profile race types to database race distance values for workout structure lookup
-const mapRaceTypeToWorkoutDistance = (raceType: RaceType): string => {
-  switch (raceType) {
-    case '5K':
-      return '5K';
-    case '10K':
-      return '10K';
-    case 'Half Marathon':
-      return 'Half Marathon';
-    case 'Marathon':
-      return '42.2K'; // Database uses 42.2K for Marathon workout structures
-    default:
-      return '5K'; // Default fallback
-  }
-};
-
 export const getWorkoutStructure = async (
   workoutType: WorkoutType,
   experienceLevel: ExperienceLevel,
@@ -85,8 +69,7 @@ export const getWorkoutStructure = async (
     workoutType,
     experienceLevel,
     phase,
-    raceDistance,
-    mappedRaceDistance: raceDistance ? mapRaceTypeToWorkoutDistance(raceDistance) : null
+    raceDistance
   });
 
   let query = supabase
@@ -96,11 +79,10 @@ export const getWorkoutStructure = async (
     .eq('experience_level', experienceLevel)
     .eq('phase', phase);
 
-  // If race distance is provided, map it and filter by it
+  // If race distance is provided, filter by it directly (no mapping needed)
   if (raceDistance) {
-    const mappedDistance = mapRaceTypeToWorkoutDistance(raceDistance);
-    query = query.eq('race_distance', mappedDistance);
-    console.log('Filtering by mapped race distance:', mappedDistance);
+    query = query.eq('race_distance', raceDistance);
+    console.log('Filtering by race distance:', raceDistance);
   }
 
   const { data, error } = await query
