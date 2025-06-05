@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Play, Plus, RefreshCw, CheckCircle, Circle, Clock, MapPin } from 'lucide-react';
+import { Calendar, CheckCircle, Circle, Clock, MapPin, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
@@ -94,6 +94,75 @@ const TrainingStatusCard = ({
       console.error('Error calculating workout duration:', error);
       return workout.duration;
     }
+  };
+
+  const getDetailedWorkoutDescription = (workout: Workout): string => {
+    const workoutType = workout.type || 'Easy';
+    
+    // Base descriptions for different workout types
+    const workoutDescriptions: Record<string, { purpose: string; structure: string; benefits: string }> = {
+      'Easy': {
+        purpose: 'Easy runs form the foundation of your training, building aerobic fitness while allowing your body to recover between harder sessions.',
+        structure: 'Run at a comfortable, conversational pace where you could maintain a conversation throughout. Your heart rate should stay in Zone 1-2.',
+        benefits: 'Develops aerobic capacity, improves fat metabolism, strengthens tendons and ligaments, and promotes recovery between intense sessions.'
+      },
+      'Recovery': {
+        purpose: 'Recovery runs help flush metabolic waste from your muscles while maintaining fitness with minimal stress on your body.',
+        structure: 'Very easy pace, slower than your easy run pace. Focus on gentle movement and relaxed breathing. Can include walk breaks if needed.',
+        benefits: 'Enhances blood flow for recovery, maintains aerobic base, reduces muscle stiffness, and prepares your body for the next hard session.'
+      },
+      'Tempo': {
+        purpose: 'Tempo runs improve your lactate threshold - the pace you can sustain for about an hour without accumulating significant lactate.',
+        structure: 'Sustained effort at "comfortably hard" pace - about your 10K to half marathon race pace. Should feel controlled but challenging.',
+        benefits: 'Increases lactate clearance, improves running economy, builds mental toughness, and enhances your ability to maintain faster paces.'
+      },
+      'Interval': {
+        purpose: 'Interval training targets your VO2 max and neuromuscular power, improving your body\'s ability to deliver and use oxygen efficiently.',
+        structure: 'Short to medium bursts of high-intensity running followed by recovery periods. Work intervals typically at 3K-5K race pace or faster.',
+        benefits: 'Maximizes oxygen uptake, improves running speed, enhances cardiac output, and builds tolerance to lactate accumulation.'
+      },
+      'Long': {
+        purpose: 'Long runs build endurance, teach your body to burn fat efficiently, and prepare you mentally and physically for race distance.',
+        structure: 'Extended duration at easy to moderate effort. May include progression or tempo segments depending on your training phase.',
+        benefits: 'Develops mitochondrial density, improves glycogen storage, strengthens running muscles, and builds mental resilience for longer distances.'
+      },
+      'Hill': {
+        purpose: 'Hill repeats develop leg strength, power, and running economy while reducing injury risk compared to flat speed work.',
+        structure: 'Short to medium uphill efforts at hard effort (5K pace feel) followed by easy recovery jogs or walks back down.',
+        benefits: 'Builds leg strength and power, improves running form, enhances neuromuscular coordination, and increases resistance to fatigue.'
+      },
+      'Cross-training': {
+        purpose: 'Cross-training maintains cardiovascular fitness while giving your running muscles a break and reducing injury risk.',
+        structure: 'Non-running aerobic activity such as cycling, swimming, elliptical, or rowing at moderate to hard effort.',
+        benefits: 'Maintains fitness while reducing impact stress, works different muscle groups, prevents overuse injuries, and adds variety to training.'
+      }
+    };
+
+    const description = workoutDescriptions[workoutType] || workoutDescriptions['Easy'];
+    
+    // Add structure-specific details if available
+    let structureDetails = '';
+    if (workout.details_json && isValidWorkoutStructure(workout.details_json)) {
+      const structure = workout.details_json as WorkoutStructureJson;
+      const mainSegment = structure.main[0];
+      
+      if (mainSegment?.reps && mainSegment?.distance) {
+        const distanceInMeters = (mainSegment.distance * 1000).toFixed(0);
+        const restTime = mainSegment.rest || 90;
+        structureDetails = `\n\nToday's Structure: ${mainSegment.reps} repetitions of ${distanceInMeters}m with ${restTime} seconds recovery between each repeat.`;
+      } else if (mainSegment?.segments && mainSegment.segments.length > 1) {
+        structureDetails = `\n\nToday's Structure: This workout includes ${mainSegment.segments.length} different segments with varying paces and intensities.`;
+      }
+    }
+
+    return `**Purpose:** ${description.purpose}\n\n**How to Execute:** ${description.structure}\n\n**Benefits:** ${description.benefits}${structureDetails}`;
+  };
+
+  const showWorkoutDetails = (workout: Workout) => {
+    const detailedDescription = getDetailedWorkoutDescription(workout);
+    
+    // For now, we'll use a simple alert. In a full implementation, you might want to use a modal
+    alert(`${workout.type} Training Session\n\n${detailedDescription.replace(/\*\*/g, '')}`);
   };
 
   const toggleWorkoutStatus = async (workoutId: string) => {
@@ -269,17 +338,13 @@ const TrainingStatusCard = ({
                       </div>
 
                       <div className="flex flex-col space-y-2 ml-4">
-                        {workout.status !== 'Completed' && (
-                          <Button 
-                            size="sm"
-                            className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
-                          >
-                            <Play className="h-4 w-4 mr-1" />
-                            Start
-                          </Button>
-                        )}
-                        
-                        <Button variant="outline" size="sm" className="border-border">
+                        <Button 
+                          onClick={() => showWorkoutDetails(workout)}
+                          variant="outline" 
+                          size="sm" 
+                          className="border-border hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                        >
+                          <Info className="h-4 w-4 mr-1" />
                           Details
                         </Button>
                       </div>
