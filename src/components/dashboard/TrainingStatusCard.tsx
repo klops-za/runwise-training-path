@@ -111,22 +111,18 @@ const TrainingStatusCard = ({
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // Get week progression information for this workout and calculate progressive distance
-      const { weekInPhase, totalPhaseWeeks } = trainingPlan ? getWeekInPhase(workout, trainingPlan, currentWeekWorkouts) : { weekInPhase: 1, totalPhaseWeeks: 1 };
-      
-      const calculatedDistance = calculateWorkoutDistance(
+      // Use the database distance_target directly (already in km) if available
+      const calculatedDistanceKm = workout.distance_target || calculateWorkoutDistance(
         structure, 
-        workout.distance_target,
-        weekInPhase,
-        totalPhaseWeeks
+        workout.distance_target
       );
       
-      // Use the new unified description generator with race type context and calculated distance
+      // Use the new unified description generator with distance in km
       const generatedDescription = generateWorkoutDescription(
         workout.type || 'Easy', 
         structure, 
         convertDistance,
-        calculatedDistance
+        calculatedDistanceKm
       );
       
       return generatedDescription || workout.description || 'No description available';
@@ -137,28 +133,24 @@ const TrainingStatusCard = ({
   };
 
   const getWorkoutDisplayDistance = (workout: Workout): string | null => {
-    if (!workout.details_json || !isValidWorkoutStructure(workout.details_json)) {
-      // Fall back to stored distance_target if no valid structure
-      return workout.distance_target ? convertDistance(workout.distance_target) : null;
+    // Use distance_target from database as primary source (already in km)
+    if (workout.distance_target) {
+      return convertDistance(workout.distance_target);
     }
     
-    try {
-      const structure = workout.details_json as WorkoutStructureJson;
-      
-      // Get week progression information for this workout
-      const { weekInPhase, totalPhaseWeeks } = trainingPlan ? getWeekInPhase(workout, trainingPlan, currentWeekWorkouts) : { weekInPhase: 1, totalPhaseWeeks: 1 };
-      
-      const calculatedDistance = calculateWorkoutDistance(
-        structure, 
-        workout.distance_target,
-        weekInPhase,
-        totalPhaseWeeks
-      );
-      return convertDistance(calculatedDistance);
-    } catch (error) {
-      console.error('Error calculating workout distance:', error);
-      return workout.distance_target ? convertDistance(workout.distance_target) : null;
+    // Fall back to calculation only if no distance_target
+    if (workout.details_json && isValidWorkoutStructure(workout.details_json)) {
+      try {
+        const structure = workout.details_json as WorkoutStructureJson;
+        const calculatedDistanceKm = calculateWorkoutDistance(structure);
+        return convertDistance(calculatedDistanceKm);
+      } catch (error) {
+        console.error('Error calculating workout distance:', error);
+        return null;
+      }
     }
+    
+    return null;
   };
 
   const getWorkoutDisplayDuration = (workout: Workout): number | null => {
@@ -174,6 +166,23 @@ const TrainingStatusCard = ({
       console.error('Error calculating workout duration:', error);
       return workout.duration;
     }
+  };
+
+  const getIntensityColor = (intensity: string) => {
+    switch (intensity?.toLowerCase()) {
+      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'moderate': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      default: return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    return status === 'Completed' ? (
+      <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+    ) : (
+      <Circle className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+    );
   };
 
   const getDetailedWorkoutDescription = (workout: Workout): string => {
@@ -277,23 +286,6 @@ const TrainingStatusCard = ({
     } catch (error) {
       console.error('Unexpected error:', error);
     }
-  };
-
-  const getIntensityColor = (intensity: string) => {
-    switch (intensity?.toLowerCase()) {
-      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'moderate': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default: return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    return status === 'Completed' ? (
-      <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-    ) : (
-      <Circle className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-    );
   };
 
   if (!trainingPlan) {

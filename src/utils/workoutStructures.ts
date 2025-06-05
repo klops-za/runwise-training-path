@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -84,11 +83,12 @@ const paceToSecondsPerMile = (pace: string): number => {
   return paceMap[pace.toLowerCase()] || 540; // Default to easy pace
 };
 
-// Helper function to calculate distance based on time and pace (returns miles)
+// Helper function to calculate distance based on time and pace (returns km)
 const calculateDistanceFromTime = (timeMinutes: number, pace: string): number => {
   const paceSecondsPerMile = paceToSecondsPerMile(pace);
   const timeSeconds = timeMinutes * 60;
-  return timeSeconds / paceSecondsPerMile; // Returns distance in miles
+  const distanceInMiles = timeSeconds / paceSecondsPerMile;
+  return distanceInMiles * 1.60934; // Convert miles to km to match database units
 };
 
 // Helper function to convert distance to meters with proper rounding
@@ -179,7 +179,7 @@ export const generateWorkoutDescription = (
   workoutType: WorkoutType,
   structureJson: WorkoutStructureJson,
   convertDistance?: (distance: number) => string,
-  calculatedDistance?: number
+  calculatedDistanceKm?: number
 ): string => {
   // Use description from structure if available
   if (structureJson.description) {
@@ -202,14 +202,13 @@ export const generateWorkoutDescription = (
       break;
     
     case 'Tempo':
-      if (calculatedDistance && convertDistance) {
-        // Use calculated progressive distance
-        const distanceStr = convertDistance(calculatedDistance);
+      if (calculatedDistanceKm && convertDistance) {
+        // Use calculated progressive distance (already in km)
+        const distanceStr = convertDistance(calculatedDistanceKm);
         mainDescription = `${distanceStr} @ ${mainSegment?.pace || PACE_ZONES.TEMPO} pace`;
       } else if (mainSegment?.distance) {
-        // Convert km to miles for the convertDistance function
-        const distanceInMiles = mainSegment.distance * 0.621371;
-        const distanceStr = convertDistance ? convertDistance(distanceInMiles) : `${mainSegment.distance} km`;
+        // Use distance from structure (already in km)
+        const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} km`;
         mainDescription = `${distanceStr} @ ${mainSegment.pace || PACE_ZONES.TEMPO} pace`;
       } else {
         mainDescription = mainSegment?.description || 'Tempo run at threshold pace';
@@ -226,9 +225,9 @@ export const generateWorkoutDescription = (
       break;
     
     case 'Long':
-      if (calculatedDistance && convertDistance) {
-        // Use calculated progressive distance
-        const distanceStr = convertDistance(calculatedDistance);
+      if (calculatedDistanceKm && convertDistance) {
+        // Use calculated progressive distance (already in km)
+        const distanceStr = convertDistance(calculatedDistanceKm);
         if (mainSegment?.segments && mainSegment.segments.length > 1) {
           mainDescription = `${distanceStr} long run with varied pace segments`;
         } else {
@@ -237,9 +236,8 @@ export const generateWorkoutDescription = (
       } else if (mainSegment?.segments && mainSegment.segments.length > 1) {
         mainDescription = `Long run with varied pace segments`;
       } else if (mainSegment?.distance) {
-        // Convert km to miles for the convertDistance function
-        const distanceInMiles = mainSegment.distance * 0.621371;
-        const distanceStr = convertDistance ? convertDistance(distanceInMiles) : `${mainSegment.distance} km`;
+        // Use distance from structure (already in km)
+        const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} km`;
         mainDescription = `${distanceStr} long run @ ${mainSegment.pace || PACE_ZONES.EASY} pace`;
       } else {
         mainDescription = mainSegment?.description || 'Long endurance run';
@@ -247,14 +245,13 @@ export const generateWorkoutDescription = (
       break;
     
     case 'Easy':
-      if (calculatedDistance && convertDistance) {
-        // Use calculated progressive distance
-        const distanceStr = convertDistance(calculatedDistance);
+      if (calculatedDistanceKm && convertDistance) {
+        // Use calculated progressive distance (already in km)
+        const distanceStr = convertDistance(calculatedDistanceKm);
         mainDescription = `${distanceStr} easy run @ ${mainSegment?.pace || PACE_ZONES.EASY} pace`;
       } else if (mainSegment?.distance) {
-        // Convert km to miles for the convertDistance function
-        const distanceInMiles = mainSegment.distance * 0.621371;
-        const distanceStr = convertDistance ? convertDistance(distanceInMiles) : `${mainSegment.distance} km`;
+        // Use distance from structure (already in km)
+        const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} km`;
         mainDescription = `${distanceStr} easy run @ ${mainSegment.pace || PACE_ZONES.EASY} pace`;
       } else {
         mainDescription = mainSegment?.description || `Easy run at ${EFFORT_LEVELS.EASY.toLowerCase()} pace`;
@@ -262,14 +259,13 @@ export const generateWorkoutDescription = (
       break;
     
     case 'Recovery':
-      if (calculatedDistance && convertDistance) {
-        // Use calculated progressive distance
-        const distanceStr = convertDistance(calculatedDistance);
+      if (calculatedDistanceKm && convertDistance) {
+        // Use calculated progressive distance (already in km)
+        const distanceStr = convertDistance(calculatedDistanceKm);
         mainDescription = `${distanceStr} recovery run @ ${mainSegment?.pace || PACE_ZONES.RECOVERY} pace`;
       } else if (mainSegment?.distance) {
-        // Convert km to miles for the convertDistance function
-        const distanceInMiles = mainSegment.distance * 0.621371;
-        const distanceStr = convertDistance ? convertDistance(distanceInMiles) : `${mainSegment.distance} km`;
+        // Use distance from structure (already in km)
+        const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} km`;
         mainDescription = `${distanceStr} recovery run @ ${mainSegment.pace || PACE_ZONES.RECOVERY} pace`;
       } else {
         mainDescription = mainSegment?.description || `Recovery run at ${EFFORT_LEVELS.VERY_EASY.toLowerCase()} pace`;
@@ -350,11 +346,8 @@ export const calculateWorkoutDistance = (
     // Calculate progression ratio (0 to 1)
     const progressionRatio = (safeWeekInPhase - 1) / (totalPhaseWeeks - 1);
     
-    // Progressive distance in km
+    // Progressive distance in km (structure stores distances in km)
     const progressiveDistanceKm = structureJson.min_distance + (progressionRatio * (structureJson.max_distance - structureJson.min_distance));
-    
-    // Convert km to miles for return value
-    const progressiveDistanceMiles = progressiveDistanceKm * 0.621371;
     
     console.log('Using progressive distance:', {
       safeWeekInPhase,
@@ -362,21 +355,18 @@ export const calculateWorkoutDistance = (
       progressionRatio,
       minDistanceKm: structureJson.min_distance,
       maxDistanceKm: structureJson.max_distance,
-      progressiveDistanceKm,
-      progressiveDistanceMiles
+      progressiveDistanceKm
     });
-    return Math.round(progressiveDistanceMiles * 10) / 10;
+    return Math.round(progressiveDistanceKm * 10) / 10; // Return km with 1 decimal place
   }
   
-  // Use min_distance from structure if available (convert km to miles)
+  // Use min_distance from structure if available (already in km)
   if (structureJson.min_distance) {
     console.log('Using min_distance from structure (km):', structureJson.min_distance);
-    const milesDistance = structureJson.min_distance * 0.621371;
-    console.log('Converted to miles:', milesDistance);
-    return milesDistance;
+    return structureJson.min_distance;
   }
 
-  let totalDistanceMiles = 0;
+  let totalDistanceKm = 0;
   const mainSegment = structureJson.main[0];
   
   console.log('Main segment:', mainSegment);
@@ -385,62 +375,59 @@ export const calculateWorkoutDistance = (
   if (structureJson.warmup?.duration) {
     const warmupPace = structureJson.warmup.pace || PACE_ZONES.EASY;
     const warmupDistance = calculateDistanceFromTime(structureJson.warmup.duration, warmupPace);
-    console.log('Warmup distance calculated:', warmupDistance, 'miles from', structureJson.warmup.duration, 'min at', warmupPace);
-    totalDistanceMiles += warmupDistance;
+    console.log('Warmup distance calculated:', warmupDistance, 'km from', structureJson.warmup.duration, 'min at', warmupPace);
+    totalDistanceKm += warmupDistance;
   }
   
   // Calculate main segment distance
   if (mainSegment?.reps && mainSegment?.distance) {
-    // For interval workouts, distance is in km, convert to miles
+    // For interval workouts, distance is already in km
     const mainDistanceKm = mainSegment.reps * mainSegment.distance;
-    const mainDistanceMiles = mainDistanceKm * 0.621371;
-    console.log('Main distance (interval):', mainDistanceMiles, 'miles (', mainDistanceKm, 'km) =', mainSegment.reps, 'x', mainSegment.distance, 'km');
-    totalDistanceMiles += mainDistanceMiles;
+    console.log('Main distance (interval):', mainDistanceKm, 'km =', mainSegment.reps, 'x', mainSegment.distance, 'km');
+    totalDistanceKm += mainDistanceKm;
   } else if (mainSegment?.segments) {
     // For segmented workouts, sum all segments
-    const segmentDistanceMiles = mainSegment.segments.reduce((sum, segment) => {
+    const segmentDistanceKm = mainSegment.segments.reduce((sum, segment) => {
       if (segment.distance) {
-        const segmentMiles = segment.distance * 0.621371; // Convert km to miles
-        console.log('Segment distance:', segmentMiles, 'miles (', segment.distance, 'km)');
-        return sum + segmentMiles;
+        console.log('Segment distance:', segment.distance, 'km');
+        return sum + segment.distance; // Already in km
       } else if (segment.duration && segment.pace) {
         const calcDistance = calculateDistanceFromTime(segment.duration / 60, segment.pace);
-        console.log('Calculated segment distance:', calcDistance, 'miles from', segment.duration, 's at', segment.pace);
+        console.log('Calculated segment distance:', calcDistance, 'km from', segment.duration, 's at', segment.pace);
         return sum + calcDistance;
       }
       return sum;
     }, 0);
-    console.log('Total segments distance:', segmentDistanceMiles, 'miles');
-    totalDistanceMiles += segmentDistanceMiles > 0 ? segmentDistanceMiles : (baseDistance || 3);
+    console.log('Total segments distance:', segmentDistanceKm, 'km');
+    totalDistanceKm += segmentDistanceKm > 0 ? segmentDistanceKm : (baseDistance || 3);
   } else if (mainSegment?.distance) {
-    // Convert km to miles
-    const mainDistanceMiles = mainSegment.distance * 0.621371;
-    console.log('Main distance (direct):', mainDistanceMiles, 'miles (', mainSegment.distance, 'km)');
-    totalDistanceMiles += mainDistanceMiles;
+    // Distance is already in km
+    console.log('Main distance (direct):', mainSegment.distance, 'km');
+    totalDistanceKm += mainSegment.distance;
   } else if (mainSegment?.duration && mainSegment?.pace) {
     // Calculate distance from duration and pace
     const mainDistance = calculateDistanceFromTime(mainSegment.duration / 60, mainSegment.pace);
-    console.log('Main distance (calculated from time/pace):', mainDistance, 'miles from', mainSegment.duration / 60, 'min at', mainSegment.pace);
-    totalDistanceMiles += mainDistance;
+    console.log('Main distance (calculated from time/pace):', mainDistance, 'km from', mainSegment.duration / 60, 'min at', mainSegment.pace);
+    totalDistanceKm += mainDistance;
   } else {
     // Fall back to base distance for main segment
-    console.log('Using base distance for main:', baseDistance || 3, 'miles');
-    totalDistanceMiles += baseDistance || 3;
+    console.log('Using base distance for main:', baseDistance || 3, 'km');
+    totalDistanceKm += baseDistance || 3;
   }
   
   // Calculate cooldown distance
   if (structureJson.cooldown?.duration) {
     const cooldownPace = structureJson.cooldown.pace || PACE_ZONES.EASY;
     const cooldownDistance = calculateDistanceFromTime(structureJson.cooldown.duration, cooldownPace);
-    console.log('Cooldown distance calculated:', cooldownDistance, 'miles from', structureJson.cooldown.duration, 'min at', cooldownPace);
-    totalDistanceMiles += cooldownDistance;
+    console.log('Cooldown distance calculated:', cooldownDistance, 'km from', structureJson.cooldown.duration, 'min at', cooldownPace);
+    totalDistanceKm += cooldownDistance;
   }
   
-  console.log('Total distance before rounding:', totalDistanceMiles, 'miles');
-  const rounded = Math.round(totalDistanceMiles * 10) / 10;
-  console.log('Total distance after rounding:', rounded, 'miles');
+  console.log('Total distance before rounding:', totalDistanceKm, 'km');
+  const rounded = Math.round(totalDistanceKm * 10) / 10;
+  console.log('Total distance after rounding:', rounded, 'km');
   
-  return rounded; // Round to 1 decimal place, return in miles
+  return rounded; // Round to 1 decimal place, return in km
 };
 
 export const calculateWorkoutDuration = (

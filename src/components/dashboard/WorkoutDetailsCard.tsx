@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Target, Zap } from 'lucide-react';
@@ -8,7 +9,7 @@ type Workout = Database['public']['Tables']['workouts']['Row'];
 
 interface WorkoutDetailsCardProps {
   workout: Workout;
-  convertDistance: (distanceInMiles: number) => string;
+  convertDistance: (distanceInKm: number) => string;
 }
 
 const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProps) => {
@@ -33,16 +34,15 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // For WorkoutDetailsCard, we don't have training plan context for progression
-      // So we'll calculate distance without progression (use base values)
-      const calculatedDistance = calculateWorkoutDistance(structure);
+      // Use distance_target from database (already in km) if available
+      const calculatedDistanceKm = workout.distance_target || calculateWorkoutDistance(structure);
       
-      // Use the new unified description generator with race type context and calculated distance
+      // Use the new unified description generator with distance in km
       const generatedDescription = generateWorkoutDescription(
         workout.type || 'Easy', 
         structure, 
         convertDistance,
-        calculatedDistance
+        calculatedDistanceKm
       );
       
       return generatedDescription || workout.description;
@@ -50,6 +50,14 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
       console.error('Error parsing workout structure:', error);
       return workout.description;
     }
+  };
+
+  const getDisplayDistance = () => {
+    // Use distance_target from database as primary source (already in km)
+    if (workout.distance_target) {
+      return convertDistance(workout.distance_target);
+    }
+    return null;
   };
 
   return (
@@ -84,10 +92,10 @@ const WorkoutDetailsCard = ({ workout, convertDistance }: WorkoutDetailsCardProp
               {workout.duration} min
             </div>
           )}
-          {workout.distance_target && (
+          {getDisplayDistance() && (
             <div className="flex items-center">
               <MapPin className="h-4 w-4 mr-1" />
-              {convertDistance(workout.distance_target)}
+              {getDisplayDistance()}
             </div>
           )}
           {workout.pace_target && (

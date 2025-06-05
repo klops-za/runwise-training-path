@@ -124,12 +124,12 @@ const TrainingSchedule = () => {
     fetchTrainingData();
   }, [user, toast]);
 
-  const convertDistance = (distanceInMiles: number) => {
-    if (!runner?.preferred_unit || runner.preferred_unit === 'mi') {
-      return `${distanceInMiles.toFixed(1)} miles`;
-    } else {
-      const distanceInKm = distanceInMiles * 1.60934;
+  const convertDistance = (distanceInKm: number) => {
+    if (!runner?.preferred_unit || runner.preferred_unit === 'km') {
       return `${distanceInKm.toFixed(1)} km`;
+    } else {
+      const distanceInMiles = distanceInKm * 0.621371;
+      return `${distanceInMiles.toFixed(1)} miles`;
     }
   };
 
@@ -206,22 +206,15 @@ const TrainingSchedule = () => {
       
       const structure = detailsData as WorkoutStructureJson;
       
-      // Get week progression information for this workout and calculate progressive distance
-      const { weekInPhase, totalPhaseWeeks } = trainingPlan ? getWeekInPhase(workout, trainingPlan) : { weekInPhase: 1, totalPhaseWeeks: 1 };
+      // Use the database distance_target directly (already in km) if available
+      const calculatedDistanceKm = workout.distance_target || calculateWorkoutDistance(structure);
       
-      const calculatedDistance = calculateWorkoutDistance(
-        structure, 
-        workout.distance_target,
-        weekInPhase,
-        totalPhaseWeeks
-      );
-      
-      // Use the enhanced generateWorkoutDescription function with calculated distance
+      // Use the enhanced generateWorkoutDescription function with distance in km
       const generatedDescription = generateWorkoutDescription(
         workout.type as any,
         structure,
         convertDistance,
-        calculatedDistance
+        calculatedDistanceKm
       );
       
       return generatedDescription;
@@ -232,28 +225,24 @@ const TrainingSchedule = () => {
   };
 
   const getWorkoutDisplayDistance = (workout: Workout): string | null => {
-    if (!workout.details_json || !isValidWorkoutStructure(workout.details_json)) {
-      // Fall back to stored distance_target if no valid structure
-      return workout.distance_target ? convertDistance(workout.distance_target) : null;
+    // Use distance_target from database as primary source (already in km)
+    if (workout.distance_target) {
+      return convertDistance(workout.distance_target);
     }
     
-    try {
-      const structure = workout.details_json as WorkoutStructureJson;
-      
-      // Get week progression information for this workout
-      const { weekInPhase, totalPhaseWeeks } = trainingPlan ? getWeekInPhase(workout, trainingPlan) : { weekInPhase: 1, totalPhaseWeeks: 1 };
-      
-      const calculatedDistance = calculateWorkoutDistance(
-        structure, 
-        workout.distance_target,
-        weekInPhase,
-        totalPhaseWeeks
-      );
-      return convertDistance(calculatedDistance);
-    } catch (error) {
-      console.error('Error calculating workout distance:', error);
-      return workout.distance_target ? convertDistance(workout.distance_target) : null;
+    // Fall back to calculation only if no distance_target
+    if (workout.details_json && isValidWorkoutStructure(workout.details_json)) {
+      try {
+        const structure = workout.details_json as WorkoutStructureJson;
+        const calculatedDistanceKm = calculateWorkoutDistance(structure);
+        return convertDistance(calculatedDistanceKm);
+      } catch (error) {
+        console.error('Error calculating workout distance:', error);
+        return null;
+      }
     }
+    
+    return null;
   };
 
   const getWorkoutDisplayDuration = (workout: Workout): number | null => {
@@ -394,38 +383,35 @@ const TrainingSchedule = () => {
   // Filter workouts for selected week
   const weekWorkouts = workouts.filter(workout => workout.week_number === selectedWeek);
 
-  // Calculate week summary with calculated values from structure
+  // Calculate week summary with values from database
   const completedWorkouts = weekWorkouts.filter(w => w.status === 'Completed').length;
   const totalWorkouts = weekWorkouts.length;
   
-  // Calculate total distance using the new progressive function
-  const totalDistanceMiles = weekWorkouts.reduce((sum, workout) => {
+  // Calculate total distance using database distance_target values
+  const totalDistanceKm = weekWorkouts.reduce((sum, workout) => {
+    // Use distance_target from database (already in km)
+    if (workout.distance_target) {
+      return sum + workout.distance_target;
+    }
+    
+    // Fall back to calculation only if no distance_target
     if (workout.details_json && isValidWorkoutStructure(workout.details_json)) {
       try {
         const structure = workout.details_json as WorkoutStructureJson;
-        
-        // Get week progression information for this workout
-        const { weekInPhase, totalPhaseWeeks } = trainingPlan ? getWeekInPhase(workout, trainingPlan) : { weekInPhase: 1, totalPhaseWeeks: 1 };
-        
-        const calculatedDistance = calculateWorkoutDistance(
-          structure, 
-          workout.distance_target,
-          weekInPhase,
-          totalPhaseWeeks
-        );
-        return sum + calculatedDistance;
+        const calculatedDistanceKm = calculateWorkoutDistance(structure);
+        return sum + calculatedDistanceKm;
       } catch (error) {
         console.error('Error calculating workout distance for summary:', error);
-        return sum + (workout.distance_target || 0);
+        return sum;
       }
     }
-    return sum + (workout.distance_target || 0);
+    return sum;
   }, 0);
   
-  const totalDistance = runner?.preferred_unit === 'km' ? 
-    (totalDistanceMiles * 1.60934).toFixed(1) : 
-    totalDistanceMiles.toFixed(1);
-  const distanceUnit = runner?.preferred_unit === 'km' ? 'km' : 'miles';
+  const totalDistance = runner?.preferred_unit === 'mi' ? 
+    (totalDistanceKm * 0.621371).toFixed(1) : 
+    totalDistanceKm.toFixed(1);
+  const distanceUnit = runner?.preferred_unit === 'mi' ? 'miles' : 'km';
 
   if (loading) {
     return (
