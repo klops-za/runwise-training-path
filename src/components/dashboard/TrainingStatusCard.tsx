@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +5,13 @@ import { Calendar, Play, Plus, RefreshCw, CheckCircle, Circle, Clock, MapPin } f
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
-import { isValidWorkoutStructure, type WorkoutStructureJson, generateWorkoutDescription } from '@/utils/workoutStructures';
+import { 
+  isValidWorkoutStructure, 
+  type WorkoutStructureJson, 
+  generateWorkoutDescription,
+  calculateWorkoutDistance,
+  calculateWorkoutDuration
+} from '@/utils/workoutStructures';
 
 type TrainingPlan = Database['public']['Tables']['training_plans']['Row'];
 type Workout = Database['public']['Tables']['workouts']['Row'];
@@ -57,6 +62,37 @@ const TrainingStatusCard = ({
     } catch (error) {
       console.error('Error parsing workout structure:', error);
       return workout.description || 'No description available';
+    }
+  };
+
+  const getWorkoutDisplayDistance = (workout: Workout): string | null => {
+    if (!workout.details_json || !isValidWorkoutStructure(workout.details_json)) {
+      // Fall back to stored distance_target if no valid structure
+      return workout.distance_target ? convertDistance(workout.distance_target) : null;
+    }
+    
+    try {
+      const structure = workout.details_json as WorkoutStructureJson;
+      const calculatedDistance = calculateWorkoutDistance(structure, workout.distance_target);
+      return convertDistance(calculatedDistance);
+    } catch (error) {
+      console.error('Error calculating workout distance:', error);
+      return workout.distance_target ? convertDistance(workout.distance_target) : null;
+    }
+  };
+
+  const getWorkoutDisplayDuration = (workout: Workout): number | null => {
+    if (!workout.details_json || !isValidWorkoutStructure(workout.details_json)) {
+      // Fall back to stored duration if no valid structure
+      return workout.duration;
+    }
+    
+    try {
+      const structure = workout.details_json as WorkoutStructureJson;
+      return calculateWorkoutDuration(structure, workout.duration);
+    } catch (error) {
+      console.error('Error calculating workout duration:', error);
+      return workout.duration;
     }
   };
 
@@ -167,86 +203,91 @@ const TrainingStatusCard = ({
           </div>
         ) : (
           <div className="space-y-4">
-            {currentWeekWorkouts.map((workout) => (
-              <Card key={workout.id} className={`border transition-all duration-200 hover:shadow-md ${
-                workout.status === 'Completed' 
-                  ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/30' 
-                  : 'border-border'
-              }`}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <button 
-                          onClick={() => toggleWorkoutStatus(workout.id)}
-                          className="flex-shrink-0"
-                        >
-                          {getStatusIcon(workout.status || 'Pending')}
-                        </button>
-                        
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">{workout.type || 'Workout'}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {workout.date ? new Date(workout.date).toLocaleDateString('en-US', { 
-                              weekday: 'long', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            }) : 'Date TBD'}
-                          </p>
+            {currentWeekWorkouts.map((workout) => {
+              const displayDistance = getWorkoutDisplayDistance(workout);
+              const displayDuration = getWorkoutDisplayDuration(workout);
+              
+              return (
+                <Card key={workout.id} className={`border transition-all duration-200 hover:shadow-md ${
+                  workout.status === 'Completed' 
+                    ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/30' 
+                    : 'border-border'
+                }`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <button 
+                            onClick={() => toggleWorkoutStatus(workout.id)}
+                            className="flex-shrink-0"
+                          >
+                            {getStatusIcon(workout.status || 'Pending')}
+                          </button>
+                          
+                          <div>
+                            <h3 className="text-lg font-semibold text-foreground">{workout.type || 'Workout'}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {workout.date ? new Date(workout.date).toLocaleDateString('en-US', { 
+                                weekday: 'long', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              }) : 'Date TBD'}
+                            </p>
+                          </div>
+                          
+                          {workout.intensity && (
+                            <Badge className={getIntensityColor(workout.intensity)}>
+                              {workout.intensity}
+                            </Badge>
+                          )}
                         </div>
-                        
-                        {workout.intensity && (
-                          <Badge className={getIntensityColor(workout.intensity)}>
-                            {workout.intensity}
-                          </Badge>
+
+                        <div className="text-card-foreground mb-3">{getWorkoutDisplayDescription(workout)}</div>
+
+                        <div className="flex items-center space-x-6 text-sm text-muted-foreground mb-3">
+                          {displayDuration && (
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 mr-1" />
+                              {displayDuration} min
+                            </div>
+                          )}
+                          {displayDistance && (
+                            <div className="flex items-center">
+                              <MapPin className="h-4 w-4 mr-1" />
+                              {displayDistance}
+                            </div>
+                          )}
+                        </div>
+
+                        {workout.notes && (
+                          <div className="bg-blue-50 dark:bg-blue-950/50 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <p className="text-sm text-blue-800 dark:text-blue-200">
+                              <strong>Notes:</strong> {workout.notes}
+                            </p>
+                          </div>
                         )}
                       </div>
 
-                      <div className="text-card-foreground mb-3">{getWorkoutDisplayDescription(workout)}</div>
-
-                      <div className="flex items-center space-x-6 text-sm text-muted-foreground mb-3">
-                        {workout.duration && (
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1" />
-                            {workout.duration} min
-                          </div>
+                      <div className="flex flex-col space-y-2 ml-4">
+                        {workout.status !== 'Completed' && (
+                          <Button 
+                            size="sm"
+                            className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
+                          >
+                            <Play className="h-4 w-4 mr-1" />
+                            Start
+                          </Button>
                         )}
-                        {workout.distance_target && (
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {convertDistance(workout.distance_target)}
-                          </div>
-                        )}
-                      </div>
-
-                      {workout.notes && (
-                        <div className="bg-blue-50 dark:bg-blue-950/50 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-                          <p className="text-sm text-blue-800 dark:text-blue-200">
-                            <strong>Notes:</strong> {workout.notes}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col space-y-2 ml-4">
-                      {workout.status !== 'Completed' && (
-                        <Button 
-                          size="sm"
-                          className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
-                        >
-                          <Play className="h-4 w-4 mr-1" />
-                          Start
+                        
+                        <Button variant="outline" size="sm" className="border-border">
+                          Details
                         </Button>
-                      )}
-                      
-                      <Button variant="outline" size="sm" className="border-border">
-                        Details
-                      </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </CardContent>
