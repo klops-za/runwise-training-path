@@ -303,53 +303,76 @@ export const calculateWorkoutDistance = (
   structureJson: WorkoutStructureJson,
   baseDistance?: number
 ): number => {
+  console.log('calculateWorkoutDistance called with:', structureJson);
+  
   // Use min_distance from structure if available
   if (structureJson.min_distance) {
+    console.log('Using min_distance from structure:', structureJson.min_distance);
     return structureJson.min_distance;
   }
 
   let totalDistance = 0;
   const mainSegment = structureJson.main[0];
   
+  console.log('Main segment:', mainSegment);
+  
   // Calculate warmup distance
   if (structureJson.warmup?.duration) {
     const warmupPace = structureJson.warmup.pace || PACE_ZONES.EASY;
-    totalDistance += calculateDistanceFromTime(structureJson.warmup.duration, warmupPace);
+    const warmupDistance = calculateDistanceFromTime(structureJson.warmup.duration, warmupPace);
+    console.log('Warmup distance calculated:', warmupDistance, 'from', structureJson.warmup.duration, 'min at', warmupPace);
+    totalDistance += warmupDistance;
   }
   
   // Calculate main segment distance
   if (mainSegment?.reps && mainSegment?.distance) {
     // For interval workouts, use the specified distance times reps
-    totalDistance += mainSegment.reps * mainSegment.distance;
+    const mainDistance = mainSegment.reps * mainSegment.distance;
+    console.log('Main distance (interval):', mainDistance, '=', mainSegment.reps, 'x', mainSegment.distance);
+    totalDistance += mainDistance;
   } else if (mainSegment?.segments) {
     // For segmented workouts, sum all segments
     const segmentDistance = mainSegment.segments.reduce((sum, segment) => {
       if (segment.distance) {
+        console.log('Segment distance:', segment.distance);
         return sum + segment.distance;
       } else if (segment.duration && segment.pace) {
-        return sum + calculateDistanceFromTime(segment.duration / 60, segment.pace);
+        const calcDistance = calculateDistanceFromTime(segment.duration / 60, segment.pace);
+        console.log('Calculated segment distance:', calcDistance, 'from', segment.duration, 's at', segment.pace);
+        return sum + calcDistance;
       }
       return sum;
     }, 0);
+    console.log('Total segments distance:', segmentDistance);
     totalDistance += segmentDistance > 0 ? segmentDistance : (baseDistance || 3);
   } else if (mainSegment?.distance) {
     // Use distance from main segment if available
+    console.log('Main distance (direct):', mainSegment.distance);
     totalDistance += mainSegment.distance;
   } else if (mainSegment?.duration && mainSegment?.pace) {
     // Calculate distance from duration and pace
-    totalDistance += calculateDistanceFromTime(mainSegment.duration / 60, mainSegment.pace);
+    const mainDistance = calculateDistanceFromTime(mainSegment.duration / 60, mainSegment.pace);
+    console.log('Main distance (calculated from time/pace):', mainDistance, 'from', mainSegment.duration / 60, 'min at', mainSegment.pace);
+    totalDistance += mainDistance;
   } else {
     // Fall back to base distance for main segment
+    console.log('Using base distance for main:', baseDistance || 3);
     totalDistance += baseDistance || 3;
   }
   
   // Calculate cooldown distance
   if (structureJson.cooldown?.duration) {
     const cooldownPace = structureJson.cooldown.pace || PACE_ZONES.EASY;
-    totalDistance += calculateDistanceFromTime(structureJson.cooldown.duration, cooldownPace);
+    const cooldownDistance = calculateDistanceFromTime(structureJson.cooldown.duration, cooldownPace);
+    console.log('Cooldown distance calculated:', cooldownDistance, 'from', structureJson.cooldown.duration, 'min at', cooldownPace);
+    totalDistance += cooldownDistance;
   }
   
-  return Math.round(totalDistance * 10) / 10; // Round to 1 decimal place
+  console.log('Total distance before rounding:', totalDistance);
+  const rounded = Math.round(totalDistance * 10) / 10;
+  console.log('Total distance after rounding:', rounded);
+  
+  return rounded; // Round to 1 decimal place
 };
 
 export const calculateWorkoutDuration = (
