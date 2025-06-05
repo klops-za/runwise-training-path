@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -82,7 +83,7 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
   };
 
   const handleCreate = async () => {
-    if (!user || !formData.name || !formData.raceType || !formData.experienceLevel || !formData.raceDate) {
+    if (!user || !formData.name || !formData.raceType || !formData.experienceLevel) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
@@ -113,13 +114,16 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
 
       const fitnessScore = runnerData?.fitness_score || 50; // Default to 50 if no fitness score
 
+      // Calculate race date - if not provided, use a standard 16-week plan from start date
+      const raceDate = formData.raceDate || new Date(formData.trainingStartDate.getTime() + (16 * 7 * 24 * 60 * 60 * 1000));
+
       const { data: planId, error } = await supabase.rpc('generate_training_plan', {
         runner_uuid: user.id,
         race_type_param: formData.raceType,
         experience_level_param: formData.experienceLevel,
         fitness_score_param: fitnessScore,
         training_days_param: formData.trainingDays,
-        race_date_param: formData.raceDate.toISOString().split('T')[0],
+        race_date_param: raceDate.toISOString().split('T')[0],
         training_start_date_param: formData.trainingStartDate.toISOString().split('T')[0],
         plan_name_param: formData.name,
         plan_description_param: formData.description || null,
@@ -235,7 +239,7 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Race Date *</Label>
+              <Label>Race Date (Optional)</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -243,7 +247,7 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
                     className="w-full justify-start text-left font-normal"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.raceDate ? format(formData.raceDate, "PPP") : "Select race date"}
+                    {formData.raceDate ? format(formData.raceDate, "PPP") : "No specific race date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -255,6 +259,9 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
                   />
                 </PopoverContent>
               </Popover>
+              <p className="text-sm text-muted-foreground">
+                If no race date is selected, we'll generate a full 16-week plan
+              </p>
             </div>
 
             <div className="space-y-2">
