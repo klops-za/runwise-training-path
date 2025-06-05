@@ -139,59 +139,118 @@ export const generateWorkoutDescription = (
   }
 
   const mainSegment = structureJson.main[0];
+  let mainDescription = '';
   
+  // Generate main workout description
   switch (workoutType) {
     case 'Interval':
       if (mainSegment?.reps && mainSegment?.distance) {
         const distanceInMeters = (mainSegment.distance * 1609).toFixed(0);
         const restTime = mainSegment.rest || 90;
-        return `${mainSegment.reps}x${distanceInMeters}m @ ${mainSegment.pace || PACE_ZONES.INTERVAL} pace with ${restTime}s rest`;
+        mainDescription = `${mainSegment.reps}x${distanceInMeters}m @ ${mainSegment.pace || PACE_ZONES.INTERVAL} pace with ${restTime}s rest`;
+      } else {
+        mainDescription = mainSegment?.description || 'Interval training session';
       }
-      return mainSegment?.description || 'Interval training session';
+      break;
     
     case 'Tempo':
       if (mainSegment?.distance) {
         const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} miles`;
-        return `${distanceStr} @ ${mainSegment.pace || PACE_ZONES.TEMPO} pace`;
+        mainDescription = `${distanceStr} @ ${mainSegment.pace || PACE_ZONES.TEMPO} pace`;
+      } else {
+        mainDescription = mainSegment?.description || 'Tempo run at threshold pace';
       }
-      return mainSegment?.description || 'Tempo run at threshold pace';
+      break;
     
     case 'Hill':
       if (mainSegment?.reps && mainSegment?.duration) {
         const restTime = mainSegment.rest || 120;
-        return `${mainSegment.reps}x${mainSegment.duration}s hill repeats @ ${mainSegment.effort || EFFORT_LEVELS.HARD} effort with ${restTime}s recovery`;
+        mainDescription = `${mainSegment.reps}x${mainSegment.duration}s hill repeats @ ${mainSegment.effort || EFFORT_LEVELS.HARD} effort with ${restTime}s recovery`;
+      } else {
+        mainDescription = mainSegment?.description || 'Hill repeat session';
       }
-      return mainSegment?.description || 'Hill repeat session';
+      break;
     
     case 'Long':
       if (mainSegment?.segments && mainSegment.segments.length > 1) {
-        return `Long run with varied pace segments`;
+        mainDescription = `Long run with varied pace segments`;
       } else if (mainSegment?.distance) {
         const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} miles`;
-        return `${distanceStr} long run @ ${mainSegment.pace || PACE_ZONES.EASY} pace`;
+        mainDescription = `${distanceStr} long run @ ${mainSegment.pace || PACE_ZONES.EASY} pace`;
+      } else {
+        mainDescription = mainSegment?.description || 'Long endurance run';
       }
-      return mainSegment?.description || 'Long endurance run';
+      break;
     
     case 'Easy':
       if (mainSegment?.distance) {
         const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} miles`;
-        return `${distanceStr} easy run @ ${mainSegment.pace || PACE_ZONES.EASY} pace`;
+        mainDescription = `${distanceStr} easy run @ ${mainSegment.pace || PACE_ZONES.EASY} pace`;
+      } else {
+        mainDescription = mainSegment?.description || `Easy run at ${EFFORT_LEVELS.EASY.toLowerCase()} pace`;
       }
-      return mainSegment?.description || `Easy run at ${EFFORT_LEVELS.EASY.toLowerCase()} pace`;
+      break;
     
     case 'Recovery':
       if (mainSegment?.distance) {
         const distanceStr = convertDistance ? convertDistance(mainSegment.distance) : `${mainSegment.distance} miles`;
-        return `${distanceStr} recovery run @ ${mainSegment.pace || PACE_ZONES.RECOVERY} pace`;
+        mainDescription = `${distanceStr} recovery run @ ${mainSegment.pace || PACE_ZONES.RECOVERY} pace`;
+      } else {
+        mainDescription = mainSegment?.description || `Recovery run at ${EFFORT_LEVELS.VERY_EASY.toLowerCase()} pace`;
       }
-      return mainSegment?.description || `Recovery run at ${EFFORT_LEVELS.VERY_EASY.toLowerCase()} pace`;
+      break;
     
     case 'Cross-training':
-      return mainSegment?.description || structureJson.description || 'Cross-training activity';
+      mainDescription = mainSegment?.description || structureJson.description || 'Cross-training activity';
+      break;
     
     default:
-      return 'Training run';
+      mainDescription = 'Training run';
   }
+
+  // Add warmup and cooldown information if available
+  const parts = [];
+  
+  // Add warmup
+  if (structureJson.warmup) {
+    const warmupParts = [];
+    if (structureJson.warmup.duration) {
+      warmupParts.push(`${structureJson.warmup.duration}min`);
+    }
+    if (structureJson.warmup.pace) {
+      warmupParts.push(`@ ${structureJson.warmup.pace}`);
+    }
+    if (structureJson.warmup.description) {
+      warmupParts.push(structureJson.warmup.description);
+    }
+    if (warmupParts.length === 0) {
+      warmupParts.push('warmup');
+    }
+    parts.push(`Warmup: ${warmupParts.join(' ')}`);
+  }
+
+  // Add main workout
+  parts.push(mainDescription);
+
+  // Add cooldown
+  if (structureJson.cooldown) {
+    const cooldownParts = [];
+    if (structureJson.cooldown.duration) {
+      cooldownParts.push(`${structureJson.cooldown.duration}min`);
+    }
+    if (structureJson.cooldown.pace) {
+      cooldownParts.push(`@ ${structureJson.cooldown.pace}`);
+    }
+    if (structureJson.cooldown.description) {
+      cooldownParts.push(structureJson.cooldown.description);
+    }
+    if (cooldownParts.length === 0) {
+      cooldownParts.push('cooldown');
+    }
+    parts.push(`Cooldown: ${cooldownParts.join(' ')}`);
+  }
+
+  return parts.join(' | ');
 };
 
 export const calculateWorkoutDistance = (
