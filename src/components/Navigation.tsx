@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, User, LogOut, Calendar, BookOpen, Home, FolderOpen } from "lucide-react";
+import { Menu, User, LogOut, Calendar, BookOpen, Home, FolderOpen, Gift } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -121,9 +121,19 @@ const Navigation = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <Button onClick={() => navigate('/')}>
-                Sign In
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/get-started')}
+                  className="hidden sm:flex"
+                >
+                  <Gift className="mr-2 h-4 w-4" />
+                  Free Plan
+                </Button>
+                <Button onClick={() => navigate('/')}>
+                  Sign In
+                </Button>
+              </div>
             )}
           </div>
         </div>

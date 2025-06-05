@@ -201,6 +201,36 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          created_at: string
+          email: string
+          goal_plan: string
+          id: string
+          name: string
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          goal_plan: string
+          id?: string
+          name: string
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          goal_plan?: string
+          id?: string
+          name?: string
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       phase_durations: {
         Row: {
           base_weeks: number

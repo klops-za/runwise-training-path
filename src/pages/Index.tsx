@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Target, Calendar, Trophy, BarChart3 } from 'lucide-react';
+import { ArrowRight, Target, Calendar, Trophy, BarChart3, Gift } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import AuthForm from '@/components/AuthForm';
@@ -73,6 +73,26 @@ const Index = () => {
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Train smarter for your next 5K, 10K, Half Marathon, or Marathon with personalized plans that adapt to your progress.
           </p>
+          
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+            <Button 
+              onClick={() => navigate('/get-started')}
+              className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white"
+              size="lg"
+            >
+              <Gift className="mr-2 h-5 w-5" />
+              Get Free Plan
+            </Button>
+            <Button 
+              onClick={() => document.getElementById('auth-form')?.scrollIntoView({ behavior: 'smooth' })}
+              variant="outline"
+              size="lg"
+            >
+              Start Full Training
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Features */}
@@ -119,7 +139,7 @@ const Index = () => {
         </div>
 
         {/* Auth Form */}
-        <div className="max-w-md mx-auto">
+        <div className="max-w-md mx-auto" id="auth-form">
           <AuthForm />
         </div>
       </div>

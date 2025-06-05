@@ -13,6 +13,8 @@ import KnowledgeHub from "./pages/KnowledgeHub";
 import ArticlePage from "./pages/ArticlePage";
 import Onboarding from "./pages/Onboarding";
 import Plans from "./pages/Plans";
+import GetStarted from "./pages/GetStarted";
+import FreePlans from "./pages/FreePlans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/get-started" element={<GetStarted />} />
+            <Route path="/plans/free" element={<FreePlans />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/schedule" element={<TrainingSchedule />} />
