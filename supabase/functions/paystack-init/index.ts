@@ -58,13 +58,13 @@ serve(async (req) => {
       });
     }
 
-    // Launch offer prices (subunits). Using NGN in test (amount in kobo)
-    const amount = plan === "monthly" ? 900 : 9000; // ₦9 or ₦90 for testing
+    // Launch offer prices (subunits). Using ZAR (amount in cents)
+    const amountCents = plan === "monthly" ? 900 : 9000; // R9 or R90 for testing
 
     const payload = {
       email: user.email,
-      amount: amount,
-      currency: "NGN",
+      amount: amountCents,
+      currency: "ZAR",
       callback_url: CALLBACK_URL,
       metadata: {
         planInterval: plan,

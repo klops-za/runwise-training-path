@@ -54,7 +54,7 @@ const Upgrade = () => {
                 {loadingPlan === "monthly" && (
                   <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 )}
-                Go Premium – $9/month
+                Go Premium – R9/month
               </Button>
               <Button
                 className="flex-1"
@@ -65,7 +65,7 @@ const Upgrade = () => {
                 {loadingPlan === "yearly" && (
                   <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 )}
-                Go Premium – $90/year
+                Go Premium – R90/year
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
