@@ -15,6 +15,7 @@ import { calculateTrainingPaces } from '@/utils/paceCalculations';
 import { Button } from '@/components/ui/button';
 import { getActiveTrainingPlan } from '@/utils/multiPlanGeneration';
 import type { Database } from '@/integrations/supabase/types';
+import { hasActivePremium } from '@/utils/subscription';
 
 type RunnerData = Database['public']['Tables']['runners']['Row'];
 type TrainingPlan = Database['public']['Tables']['training_plans']['Row'];
@@ -115,6 +116,18 @@ const Dashboard = () => {
         variant: "destructive",
       });
       navigate('/profile');
+      return;
+    }
+
+    // Require active Premium subscription
+    const sub = await hasActivePremium(user.id);
+    if (!sub.active) {
+      toast({
+        title: "Premium required",
+        description: "Upgrade to Premium to generate training plans.",
+        variant: "destructive",
+      });
+      navigate('/upgrade');
       return;
     }
 

@@ -1,11 +1,13 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateTrainingPlanWithTemplates } from '@/utils/trainingPlanGeneration';
 import type { Database } from '@/integrations/supabase/types';
+import { hasActivePremium } from '@/utils/subscription';
 
 type Runner = Database['public']['Tables']['runners']['Row'];
 
@@ -18,6 +20,7 @@ const TrainingPlanGeneration = ({ runner, onPlanGenerated }: TrainingPlanGenerat
   const [generating, setGenerating] = useState(false);
   const [generationStatus, setGenerationStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const generatePlan = async () => {
     if (!runner.race_goal || !runner.experience_level || !runner.training_days) {
@@ -26,6 +29,17 @@ const TrainingPlanGeneration = ({ runner, onPlanGenerated }: TrainingPlanGenerat
         description: "Please complete your profile with race goal, experience level, and training days.",
         variant: "destructive",
       });
+      return;
+    }
+    // Require active Premium subscription
+    const sub = await hasActivePremium(runner.id);
+    if (!sub.active) {
+      toast({
+        title: "Premium required",
+        description: "Upgrade to Premium to generate training plans.",
+        variant: "destructive",
+      });
+      navigate('/upgrade');
       return;
     }
 

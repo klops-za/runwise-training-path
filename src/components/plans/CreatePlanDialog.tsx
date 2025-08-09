@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Database } from '@/integrations/supabase/types';
+import { hasActivePremium } from '@/utils/subscription';
 
 type RaceType = Database['public']['Enums']['race_type'];
 type ExperienceLevel = Database['public']['Enums']['experience_level_type'];
@@ -28,6 +30,7 @@ interface CreatePlanDialogProps {
 const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialogProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
   const [planDuration, setPlanDuration] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -121,6 +124,19 @@ const CreatePlanDialog = ({ open, onOpenChange, onPlanCreated }: CreatePlanDialo
         description: "Please fill in all required fields.",
         variant: "destructive",
       });
+      return;
+    }
+
+    // Require active Premium subscription
+    const sub = await hasActivePremium(user.id);
+    if (!sub.active) {
+      toast({
+        title: "Premium required",
+        description: "Upgrade to Premium to create training plans.",
+        variant: "destructive",
+      });
+      onOpenChange(false);
+      navigate('/upgrade');
       return;
     }
 
