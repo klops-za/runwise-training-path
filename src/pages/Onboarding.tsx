@@ -268,13 +268,13 @@ const Onboarding = () => {
   const mileageLabel = formData.preferred_unit === 'mi' ? 'Current Weekly Mileage (miles)' : 'Current Weekly Mileage (km)';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 dark:from-primary/10 dark:to-accent/10">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-blue-100">
+      <header className="bg-background/80 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full"></div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
+            <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-full"></div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               RunWise
             </h1>
           </div>
@@ -286,23 +286,23 @@ const Onboarding = () => {
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Step {currentStep} of 4</span>
-              <span className="text-sm text-gray-600">{Math.round((currentStep / 4) * 100)}% Complete</span>
+              <span className="text-sm text-muted-foreground">Step {currentStep} of 4</span>
+              <span className="text-sm text-muted-foreground">{Math.round((currentStep / 4) * 100)}% Complete</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <div 
-                className="bg-gradient-to-r from-blue-600 to-orange-500 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-300"
                 style={{ width: `${(currentStep / 4) * 100}%` }}
               ></div>
             </div>
           </div>
 
-          <Card className="border-blue-100">
+          <Card className="border-border">
             <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <StepIcon className="h-8 w-8 text-blue-600" />
+              <div className="w-16 h-16 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <StepIcon className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-2xl text-gray-900">
+              <CardTitle className="text-2xl text-foreground">
                 {currentStep === 1 && "Personal Information"}
                 {currentStep === 2 && "Physical Details"}
                 {currentStep === 3 && "Running Experience"}
@@ -535,7 +535,7 @@ const Onboarding = () => {
                       onChange={(e) => handleInputChange('fitness_score', e.target.value)}
                       placeholder="45"
                     />
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       If you don't know your fitness score, we can calculate it from your recent race time
                     </p>
                   </div>
@@ -580,9 +580,9 @@ const Onboarding = () => {
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-blue-900 mb-2">Your Training Plan Preview</h4>
-                    <p className="text-blue-700 text-sm">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-semibold text-foreground mb-2">Your Training Plan Preview</h4>
+                    <p className="text-muted-foreground text-sm">
                       Based on your inputs, we'll create a personalized {formData.race_goal} training plan 
                       with {formData.training_days} training days per week, {formData.training_intensity_preference?.toLowerCase()} intensity, 
                       leading up to your race on {formData.race_date ? new Date(formData.race_date).toLocaleDateString() : '[selected date]'}.
@@ -604,7 +604,7 @@ const Onboarding = () => {
                 <Button 
                   onClick={handleNext}
                   disabled={!isStepValid()}
-                  className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white flex items-center"
+                  className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground flex items-center"
                 >
                   {currentStep === 4 ? 'Create Profile' : 'Next'}
                   <ArrowRight className="ml-2 h-4 w-4" />
