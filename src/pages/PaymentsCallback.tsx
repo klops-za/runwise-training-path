@@ -17,8 +17,8 @@ const PaymentsCallback = () => {
   useEffect(() => {
     const reference = searchParams.get("reference");
     if (!reference) {
-      setStatus("error");
-      setMessage("Missing transaction reference.");
+      setStatus("idle");
+      setMessage("No reference found. If you paid via the Paystack page, click Sync to activate.");
       return;
     }
 
@@ -55,6 +55,17 @@ const PaymentsCallback = () => {
     verify();
   }, [searchParams, navigate, toast]);
 
+  const syncSubscription = async () => {
+    const { data, error } = await supabase.functions.invoke("paystack-sync");
+    if (error || !data?.success) {
+      console.error("paystack-sync error:", error, data);
+      toast({ title: "Sync failed", description: "We couldn't confirm your subscription yet.", variant: "destructive" });
+      return;
+    }
+    toast({ title: "Subscription active", description: "Premium unlocked!" });
+    setTimeout(() => navigate("/plans"), 800);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -68,6 +79,15 @@ const PaymentsCallback = () => {
               <div className="flex items-center gap-3">
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 <p className="text-muted-foreground">Verifying your payment...</p>
+              </div>
+            )}
+            {status === "idle" && (
+              <div className="space-y-3">
+                <p className="text-muted-foreground">{message}</p>
+                <div className="flex gap-2">
+                  <Button onClick={syncSubscription}>Sync subscription</Button>
+                  <Button variant="outline" onClick={() => navigate("/")}>Back Home</Button>
+                </div>
               </div>
             )}
             {status === "success" && (

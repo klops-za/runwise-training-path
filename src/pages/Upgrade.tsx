@@ -9,28 +9,31 @@ import { useToast } from "@/hooks/use-toast";
 const Upgrade = () => {
   const { toast } = useToast();
   const [loadingPlan, setLoadingPlan] = useState<"monthly" | "yearly" | null>(null);
+  const SLUGS: Record<"monthly" | "yearly", string> = {
+    monthly: "og72wqvcc3",
+    yearly: "j29r94atfo",
+  };
 
   const startCheckout = async (plan: "monthly" | "yearly") => {
     setLoadingPlan(plan);
-    console.log("Starting checkout:", plan);
-    const { data, error } = await supabase.functions.invoke("paystack-init", {
-      body: { plan },
-    });
+    try {
+      const url = `https://paystack.shop/pay/${SLUGS[plan]}`;
+      window.open(url, "_blank");
+      toast({ title: "Redirected to Paystack", description: "Complete payment, then click Sync." });
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
-    setLoadingPlan(null);
-
-    if (error || !data?.authorization_url) {
-      console.error("paystack-init error:", error);
-      toast({
-        title: "Checkout failed",
-        description: "Unable to start payment. Please try again.",
-        variant: "destructive",
-      });
+  const syncSubscription = async () => {
+    const { data, error } = await supabase.functions.invoke("paystack-sync");
+    if (error || !data?.success) {
+      console.error("paystack-sync error:", error, data);
+      toast({ title: "Sync failed", description: "We couldn't confirm your subscription yet.", variant: "destructive" });
       return;
     }
-
-    // Redirect to Paystack hosted page
-    window.location.href = data.authorization_url;
+    toast({ title: "Subscription active", description: "Premium unlocked!" });
+    window.location.href = "/plans";
   };
 
   return (
@@ -71,6 +74,9 @@ const Upgrade = () => {
             <p className="text-xs text-muted-foreground">
               You’ll be redirected to Paystack to complete your payment securely.
             </p>
+            <div className="pt-2">
+              <Button variant="outline" onClick={syncSubscription}>Already paid? Sync subscription</Button>
+            </div>
           </CardContent>
         </Card>
       </div>
