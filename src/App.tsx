@@ -16,6 +16,7 @@ import Plans from "./pages/Plans";
 import GetStarted from "./pages/GetStarted";
 import FreePlans from "./pages/FreePlans";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -30,10 +31,10 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/get-started" element={<GetStarted />} />
             <Route path="/plans/free" element={<FreePlans />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/schedule" element={<TrainingSchedule />} />
-            <Route path="/plans" element={<Plans />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/schedule" element={<ProtectedRoute><TrainingSchedule /></ProtectedRoute>} />
+            <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
             <Route path="/knowledge" element={<KnowledgeHub />} />
             <Route path="/article/:slug" element={<ArticlePage />} />
             <Route path="/onboarding" element={<Onboarding />} />
