@@ -19,6 +19,8 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
 import { AuthProvider } from "@/hooks/useAuth";
+import PaymentsCallback from "./pages/PaymentsCallback";
+import Upgrade from "./pages/Upgrade";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,8 @@ const App = () => (
               <Route path="/article/:slug" element={<ArticlePage />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
+              <Route path="/payments/callback" element={<PaymentsCallback />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
