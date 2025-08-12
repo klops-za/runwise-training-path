@@ -52,6 +52,12 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
+  useEffect(() => {
+    const handler = () => setAuthOpen(true);
+    window.addEventListener('open-auth-modal', handler as EventListener);
+    return () => window.removeEventListener('open-auth-modal', handler as EventListener);
+  }, []);
+
   const handleStartFullTraining = () => {
     setAuthOpen(true);
   };
@@ -77,30 +83,25 @@ const Index = () => {
               RunWise
             </h1>
           </div>
-          <p className="text-2xl text-foreground mb-4">Your Intelligent Running Companion</p>
+          <p className="text-2xl text-foreground mb-2">Your Intelligent Running Companion</p>
+          <p className="text-lg md:text-xl text-foreground/80 mb-4">Smarter training. Faster results. For every runner.</p>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Train smarter for your next 5K, 10K, Half Marathon, or Marathon with personalized plans that adapt to your progress.
           </p>
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            <Button 
-              onClick={() => navigate('/get-started')}
-              className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white"
-              size="lg"
-            >
+            <Button onClick={() => navigate('/get-started')} size="lg">
               <Gift className="mr-2 h-5 w-5" />
               Get Free Plan
             </Button>
-            <Button 
-              onClick={handleStartFullTraining}
-              variant="outline"
-              size="lg"
-              className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-950"
-            >
+            <Button onClick={handleStartFullTraining} variant="outline" size="lg">
               Start Full Training
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
+          </div>
+          <div className="mt-6">
+            <img src={heroRunner} alt="Runner training hero - RunWise running app" className="mx-auto rounded-lg shadow-lg max-w-4xl w-full h-auto object-cover" loading="lazy" />
           </div>
         </div>
 
@@ -108,8 +109,8 @@ const Index = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           <Card className="border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
-              <Target className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle className="text-blue-900 dark:text-blue-100">Personalized Plans</CardTitle>
+              <Target className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle className="text-foreground">Personalized Plans</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">Tailored training plans based on your fitness level, goals, and schedule.</p>
@@ -118,8 +119,8 @@ const Index = () => {
 
           <Card className="border-orange-200 dark:border-orange-800 hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
-              <Calendar className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-              <CardTitle className="text-orange-900 dark:text-orange-100">Smart Scheduling</CardTitle>
+              <Calendar className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle className="text-foreground">Smart Scheduling</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">Flexible scheduling that adapts to your life and training preferences.</p>
@@ -128,8 +129,8 @@ const Index = () => {
 
           <Card className="border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
-              <Trophy className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle className="text-blue-900 dark:text-blue-100">Race Ready</CardTitle>
+              <Trophy className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle className="text-foreground">Race Ready</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">Proven training methods to get you race-ready for any distance.</p>
@@ -138,8 +139,8 @@ const Index = () => {
 
           <Card className="border-orange-200 dark:border-orange-800 hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
-              <BarChart3 className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-              <CardTitle className="text-orange-900 dark:text-orange-100">Progress Tracking</CardTitle>
+              <BarChart3 className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle className="text-foreground">Progress Tracking</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">Monitor your progress and adjust your training as you improve.</p>
@@ -147,14 +148,17 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Auth Form */}
-        <div className="max-w-md mx-auto" id="auth-form">
-          <div className="mb-6 text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-2">Get Started with Your Training</h2>
-            <p className="text-muted-foreground">Sign up to create your personalized training plan</p>
-          </div>
-          <AuthForm />
-        </div>
+        <PlanBuilderPreview />
+        <TrustSection />
+
+        <Dialog open={authOpen} onOpenChange={setAuthOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Sign in to RunWise</DialogTitle>
+            </DialogHeader>
+            <AuthForm />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
