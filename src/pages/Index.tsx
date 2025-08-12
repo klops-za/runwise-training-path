@@ -8,11 +8,15 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import AuthForm from '@/components/AuthForm';
 import Navigation from '@/components/Navigation';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import PlanBuilderPreview from '@/components/PlanBuilderPreview';
+import TrustSection from '@/components/TrustSection';
+import heroRunner from '@/assets/hero-runner.jpg';
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [profileLoading, setProfileLoading] = useState(true);
+  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     const checkUserProfile = async () => {
@@ -49,20 +53,8 @@ const Index = () => {
   }, [user, loading, navigate]);
 
   const handleStartFullTraining = () => {
-    // Scroll to the auth form for users to sign up
-    const authForm = document.getElementById('auth-form');
-    if (authForm) {
-      authForm.scrollIntoView({ behavior: 'smooth' });
-      // Focus on the first input in the form after scrolling
-      setTimeout(() => {
-        const firstInput = authForm.querySelector('input[type="email"]') as HTMLInputElement;
-        if (firstInput) {
-          firstInput.focus();
-        }
-      }, 500);
-    }
+    setAuthOpen(true);
   };
-
   if (loading || (user && profileLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">

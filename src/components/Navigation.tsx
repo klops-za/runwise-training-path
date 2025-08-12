@@ -130,7 +130,7 @@ const Navigation = () => {
                   <Gift className="mr-2 h-4 w-4" />
                   Free Plan
                 </Button>
-                <Button onClick={() => navigate('/')}>
+                <Button onClick={() => window.dispatchEvent(new CustomEvent('open-auth-modal'))}>
                   Sign In
                 </Button>
               </div>
