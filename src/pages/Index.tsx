@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import AuthForm from '@/components/AuthForm';
 import Navigation from '@/components/Navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import PlanBuilderPreview from '@/components/PlanBuilderPreview';
+
 import TrustSection from '@/components/TrustSection';
 import heroRunner from '@/assets/hero-runner.jpg';
 const Index = () => {
@@ -148,7 +148,7 @@ const Index = () => {
           </Card>
         </div>
 
-        <PlanBuilderPreview />
+        
         <TrustSection />
 
         <Dialog open={authOpen} onOpenChange={setAuthOpen}>
