@@ -31,15 +31,15 @@ export const useArticle = (slug: string | undefined) => {
         category = categoryData;
       }
 
-      // Get author separately if it exists
+      // Get author separately if it exists (excluding email for security)
       let author: Author | null = null;
       if (articleData.author_id) {
         const { data: authorData } = await supabase
           .from('authors')
-          .select('*')
+          .select('id, name, bio, avatar_url, created_at, updated_at')
           .eq('id', articleData.author_id)
           .single();
-        author = authorData;
+        author = authorData as Author;
       }
 
       // Get tags separately
