@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import Navigation from '@/components/Navigation';
 import { calculateTrainingPaces, formatPace } from '@/utils/paceCalculations';
+import { requireAuthentication } from '@/utils/securityValidation';
 import type { Database } from '@/integrations/supabase/types';
 
 type RunnerUpdate = Database['public']['Tables']['runners']['Update'];
@@ -50,6 +51,9 @@ const Profile = () => {
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
+      
+      // Security validation: Ensure user is authenticated before accessing PII
+      requireAuthentication(user);
 
       try {
         const { data: profile, error } = await supabase
