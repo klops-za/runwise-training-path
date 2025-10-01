@@ -79,7 +79,7 @@ const Index = () => {
         <div className="text-center mb-16">
           <div className="flex justify-center items-center mb-6">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full mr-4"></div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent pb-1" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: '1.3' }}>
               MyBestRunning
             </h1>
           </div>
