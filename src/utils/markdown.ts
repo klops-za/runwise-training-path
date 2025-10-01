@@ -10,9 +10,9 @@ export const parseMarkdown = (content: string) => {
     // Blockquotes
     .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-primary pl-4 italic my-4 text-muted-foreground">$1</blockquote>')
     // Unordered lists - convert bullet points
-    .replace(/^[*-] (.+)$/gm, '<li class="ml-4 mb-2">$1</li>')
+    .replace(/^[*-] (.+)$/gm, '<li class="ml-4">$1</li>')
     // Wrap consecutive list items
-    .replace(/(<li class="ml-4 mb-2">.*?<\/li>\s*)+/gs, '<ul class="list-disc ml-6 my-4 space-y-2">$&</ul>')
+    .replace(/(<li class="ml-4">.*?<\/li>\s*)+/gs, '<ul class="list-disc ml-6 my-4">$&</ul>')
     // Bold text (**text**)
     .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
     // Italic text (*text*)
