@@ -17,7 +17,11 @@ export const parseMarkdown = (content: string) => {
     .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
     // Italic text (*text*)
     .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em class="italic">$1</em>')
-    // Links
+    // Internal article links - convert /knowledge/slug to proper link with SEO attributes
+    .replace(/\[([^\]]+)\]\(\/knowledge\/([^)]+)\)/g, '<a href="/knowledge/$2" class="text-primary underline hover:text-primary/80 font-medium transition-colors" rel="noopener">$1</a>')
+    // External links - add target blank and noopener
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" class="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">$1</a>')
+    // Regular links (fallback)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary underline hover:text-primary/80">$1</a>')
     // Paragraphs - replace double line breaks
     .replace(/\n\n/g, '</p><p class="mb-4 text-foreground">')

@@ -57,6 +57,7 @@ export type Database = {
           published: boolean | null
           published_at: string | null
           read_time: string | null
+          related_articles_json: Json | null
           slug: string
           title: string
           updated_at: string | null
@@ -73,6 +74,7 @@ export type Database = {
           published?: boolean | null
           published_at?: string | null
           read_time?: string | null
+          related_articles_json?: Json | null
           slug: string
           title: string
           updated_at?: string | null
@@ -89,6 +91,7 @@ export type Database = {
           published?: boolean | null
           published_at?: string | null
           read_time?: string | null
+          related_articles_json?: Json | null
           slug?: string
           title?: string
           updated_at?: string | null
@@ -313,6 +316,48 @@ export type Database = {
             columns: ["runner_id"]
             isOneToOne: false
             referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      related_articles: {
+        Row: {
+          article_id: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          related_article_id: string
+          relationship_type: string | null
+        }
+        Insert: {
+          article_id: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          related_article_id: string
+          relationship_type?: string | null
+        }
+        Update: {
+          article_id?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          related_article_id?: string
+          relationship_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "related_articles_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "related_articles_related_article_id_fkey"
+            columns: ["related_article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
             referencedColumns: ["id"]
           },
         ]

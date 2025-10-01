@@ -8,6 +8,7 @@ import ArticleHeader from '@/components/article/ArticleHeader';
 import ArticleMeta from '@/components/article/ArticleMeta';
 import ArticleContent from '@/components/article/ArticleContent';
 import ArticleNavigation from '@/components/article/ArticleNavigation';
+import RelatedArticles from '@/components/article/RelatedArticles';
 
 const ArticlePage = () => {
   const { slug } = useParams();
@@ -41,6 +42,8 @@ const ArticlePage = () => {
           </div>
 
           <ArticleContent content={article.content} />
+
+          <RelatedArticles articleId={article.id} />
         </div>
       </div>
     </div>
