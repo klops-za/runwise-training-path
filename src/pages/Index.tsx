@@ -78,8 +78,8 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <div className="flex justify-center items-center mb-6">
-            <img src={logo} alt="MyBestRunning" className="h-20 w-auto" />
+          <div className="flex justify-center items-center mb-8">
+            <img src={logo} alt="MyBestRunning" className="h-32 md:h-40 lg:h-48 w-auto drop-shadow-2xl" />
           </div>
           <p className="text-2xl text-foreground mb-2">Your Intelligent Running Companion</p>
           <p className="text-lg md:text-xl text-foreground/80 mb-4">Smarter training. Faster results. For every runner.</p>
