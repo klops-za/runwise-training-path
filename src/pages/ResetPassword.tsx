@@ -17,7 +17,7 @@ const ResetPassword = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Reset Password | RunWise";
+    document.title = "Reset Password | MyBestRunning";
 
     // Check if we have a valid session from the recovery link
     supabase.auth.getSession().then(({ data: { session } }) => {

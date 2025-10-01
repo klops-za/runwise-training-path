@@ -80,7 +80,7 @@ const Index = () => {
           <div className="flex justify-center items-center mb-6">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full mr-4"></div>
             <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
-              RunWise
+              MyBestRunning
             </h1>
           </div>
           <p className="text-2xl text-foreground mb-2">Your Intelligent Running Companion</p>
@@ -101,7 +101,7 @@ const Index = () => {
             </Button>
           </div>
           <div className="mt-6">
-            <img src={heroRunner} alt="Runner training hero - RunWise running app" className="mx-auto rounded-lg shadow-lg max-w-4xl w-full h-auto object-cover" loading="lazy" />
+            <img src={heroRunner} alt="Runner training hero - MyBestRunning running app" className="mx-auto rounded-lg shadow-lg max-w-4xl w-full h-auto object-cover" loading="lazy" />
           </div>
         </div>
 
@@ -154,7 +154,7 @@ const Index = () => {
         <Dialog open={authOpen} onOpenChange={setAuthOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Sign in to RunWise</DialogTitle>
+              <DialogTitle>Sign in to MyBestRunning</DialogTitle>
             </DialogHeader>
             <AuthForm />
           </DialogContent>

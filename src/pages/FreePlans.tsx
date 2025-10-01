@@ -143,7 +143,7 @@ const FreePlans = () => {
             </CardHeader>
             <CardContent>
               <p className="mb-6 text-muted-foreground">
-                Get personalized pacing, adaptive training plans, progress tracking, and expert guidance with RunWise Pro.
+                Get personalized pacing, adaptive training plans, progress tracking, and expert guidance with MyBestRunning Pro.
               </p>
               <div className="grid sm:grid-cols-3 gap-4 mb-6 text-sm">
                 <div>

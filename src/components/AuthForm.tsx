@@ -81,7 +81,7 @@ const handleResetPassword = async () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-center text-2xl">Welcome to RunWise</CardTitle>
+        <CardTitle className="text-center text-2xl">Welcome to MyBestRunning</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="signin">

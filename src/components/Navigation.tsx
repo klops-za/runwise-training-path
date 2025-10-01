@@ -55,7 +55,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
             <Link to="/" className="text-xl font-bold gradient-text">
-              RunWise
+              MyBestRunning
             </Link>
             
             {user && (

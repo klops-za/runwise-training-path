@@ -275,7 +275,7 @@ const Onboarding = () => {
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-full"></div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              RunWise
+              MyBestRunning
             </h1>
           </div>
         </div>

@@ -22,7 +22,7 @@ const { toast } = useToast();
 
   // SEO: title, meta description, canonical
   useEffect(() => {
-    document.title = "Get Free Running Plan | RunWise";
+    document.title = "Get Free Running Plan | MyBestRunning";
     const desc = "Get a free Couch-to-5K or 5K training plan instantly.";
 
     let meta = document.querySelector('meta[name="description"]');

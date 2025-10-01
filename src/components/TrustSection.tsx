@@ -12,7 +12,7 @@ export default function TrustSection() {
           <CardContent className="p-6 text-center">
             <Trophy className="mx-auto h-8 w-8 text-primary mb-3" />
             <p className="text-3xl font-bold text-foreground">5,000+</p>
-            <p className="text-muted-foreground">Runners improving with RunWise</p>
+            <p className="text-muted-foreground">Runners improving with MyBestRunning</p>
           </CardContent>
         </Card>
         <Card className="border">
