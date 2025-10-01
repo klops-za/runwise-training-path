@@ -12,8 +12,8 @@ const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-// Public HTTPS callback from your environment
-const CALLBACK_URL = "https://preview--runwise-training-path.lovable.app/payments/callback";
+// Callback URL - update this when you set up your custom domain
+const CALLBACK_URL = "https://mybestrunning.lovable.app/payments/callback";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
