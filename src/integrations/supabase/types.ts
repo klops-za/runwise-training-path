@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -719,35 +719,35 @@ export type Database = {
       calculate_fitness_score: {
         Args:
           | {
-              race_time_str: string
               race_distance: Database["public"]["Enums"]["race_type"]
+              race_time_str: string
             }
-          | { race_time_str: string; race_distance: string }
+          | { race_distance: string; race_time_str: string }
         Returns: number
       }
       generate_training_plan: {
         Args:
-          | { runner_uuid: string }
           | {
-              runner_uuid: string
-              race_type_param: Database["public"]["Enums"]["race_type"]
               experience_level_param: Database["public"]["Enums"]["experience_level_type"]
               fitness_score_param: number
-              training_days_param: number
-              race_date_param: string
-              training_start_date_param: string
-            }
-          | {
-              runner_uuid: string
-              race_type_param: Database["public"]["Enums"]["race_type"]
-              experience_level_param: Database["public"]["Enums"]["experience_level_type"]
-              fitness_score_param: number
-              training_days_param: number
-              race_date_param: string
-              training_start_date_param: string
-              plan_name_param?: string
               plan_description_param?: string
+              plan_name_param?: string
+              race_date_param: string
+              race_type_param: Database["public"]["Enums"]["race_type"]
+              runner_uuid: string
+              training_days_param: number
+              training_start_date_param: string
             }
+          | {
+              experience_level_param: Database["public"]["Enums"]["experience_level_type"]
+              fitness_score_param: number
+              race_date_param: string
+              race_type_param: Database["public"]["Enums"]["race_type"]
+              runner_uuid: string
+              training_days_param: number
+              training_start_date_param: string
+            }
+          | { runner_uuid: string }
         Returns: string
       }
       get_current_training_week: {
