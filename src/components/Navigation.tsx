@@ -28,11 +28,14 @@ const Navigation = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const navItems = [
+  const publicNavItems = [
+    { href: "/knowledge", label: "Knowledge", icon: BookOpen },
+  ];
+
+  const authenticatedNavItems = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
     { href: "/plans", label: "Plans", icon: FolderOpen },
     { href: "/schedule", label: "Schedule", icon: Calendar },
-    { href: "/knowledge", label: "Knowledge", icon: BookOpen },
   ];
 
   const NavLink = ({ href, label, icon: Icon, className = "" }: { href: string; label: string; icon: any; className?: string }) => (
@@ -59,68 +62,70 @@ const Navigation = () => {
               <img src={logo} alt="MyBestRunning Logo" className="h-12 md:h-14 w-auto transition-all" />
             </Link>
             
-            {user && (
-              <div className="hidden md:flex space-x-1">
-                {navItems.map((item) => (
-                  <NavLink key={item.href} {...item} />
-                ))}
-              </div>
-            )}
+            <div className="hidden md:flex space-x-1">
+              {publicNavItems.map((item) => (
+                <NavLink key={item.href} {...item} />
+              ))}
+              {user && authenticatedNavItems.map((item) => (
+                <NavLink key={item.href} {...item} />
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
             <ThemeToggle />
             
+            <div className="md:hidden">
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                  <div className="flex flex-col space-y-4 mt-6">
+                    {publicNavItems.map((item) => (
+                      <NavLink key={item.href} {...item} className="w-full" />
+                    ))}
+                    {user && authenticatedNavItems.map((item) => (
+                      <NavLink key={item.href} {...item} className="w-full" />
+                    ))}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+            
             {user ? (
-              <>
-                <div className="md:hidden">
-                  <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                    <SheetTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Menu className="h-5 w-5" />
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                      <div className="flex flex-col space-y-4 mt-6">
-                        {navItems.map((item) => (
-                          <NavLink key={item.href} {...item} className="w-full" />
-                        ))}
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                </div>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>
-                          {user.email?.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile" className="flex items-center">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/plans" className="flex items-center">
-                        <FolderOpen className="mr-2 h-4 w-4" />
-                        <span>Manage Plans</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>
+                        {user.email?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/plans" className="flex items-center">
+                      <FolderOpen className="mr-2 h-4 w-4" />
+                      <span>Manage Plans</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <div className="flex items-center space-x-2">
                 <Button 
