@@ -157,7 +157,7 @@ const KnowledgeHub = () => {
                 </Badge>
               )}
               {article.categories && (
-                <Badge className={`bg-gradient-to-r ${article.categories.color_scheme} text-gray-800 border-0`}>
+                <Badge className={`bg-gradient-to-r ${article.categories.color_scheme} text-gray-900 dark:text-gray-100 border-0`}>
                   {article.categories.name}
                 </Badge>
               )}

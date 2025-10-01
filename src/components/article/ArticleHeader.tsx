@@ -14,7 +14,7 @@ const ArticleHeader = ({ article }: ArticleHeaderProps) => {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         {category && (
-          <Badge className={`bg-gradient-to-r ${category.color_scheme} text-gray-800 border-0`}>
+          <Badge className={`bg-gradient-to-r ${category.color_scheme} text-gray-900 dark:text-gray-100 border-0`}>
             {category.name}
           </Badge>
         )}
