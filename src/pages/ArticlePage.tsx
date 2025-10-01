@@ -9,11 +9,39 @@ import ArticleMeta from '@/components/article/ArticleMeta';
 import ArticleContent from '@/components/article/ArticleContent';
 import ArticleNavigation from '@/components/article/ArticleNavigation';
 import RelatedArticles from '@/components/article/RelatedArticles';
+import ArticleSeoHead from '@/components/article/ArticleSeoHead';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const ArticlePage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { data: article, isLoading, error } = useArticle(slug);
+
+  // Fetch related articles for SEO structured data
+  const { data: relatedArticles } = useQuery({
+    queryKey: ['related-articles-seo', article?.id],
+    queryFn: async () => {
+      if (!article?.id) return [];
+      
+      const { data: relationships } = await supabase
+        .from('related_articles')
+        .select('related_article_id')
+        .eq('article_id', article.id);
+
+      if (!relationships || relationships.length === 0) return [];
+
+      const relatedIds = relationships.map(r => r.related_article_id);
+      const { data: articles } = await supabase
+        .from('articles')
+        .select('id, title, slug')
+        .in('id', relatedIds)
+        .eq('published', true);
+
+      return articles || [];
+    },
+    enabled: !!article?.id,
+  });
 
   const handleBack = () => navigate('/knowledge');
 
@@ -27,6 +55,7 @@ const ArticlePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
+      <ArticleSeoHead article={article} relatedArticles={relatedArticles} />
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
