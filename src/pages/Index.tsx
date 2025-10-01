@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 
 import TrustSection from '@/components/TrustSection';
 import heroRunner from '@/assets/hero-runner.jpg';
+import logo from '@/assets/logo.png';
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -78,10 +79,7 @@ const Index = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="flex justify-center items-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full mr-4"></div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent pb-1" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: '1.3' }}>
-              MyBestRunning
-            </h1>
+            <img src={logo} alt="MyBestRunning" className="h-20 w-auto" />
           </div>
           <p className="text-2xl text-foreground mb-2">Your Intelligent Running Companion</p>
           <p className="text-lg md:text-xl text-foreground/80 mb-4">Smarter training. Faster results. For every runner.</p>

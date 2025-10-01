@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, User, LogOut, Calendar, BookOpen, Home, FolderOpen, Gift } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import logo from "@/assets/logo.png";
 
 const Navigation = () => {
   const { user, signOut } = useAuth();
@@ -54,8 +55,8 @@ const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
-            <Link to="/" className="text-xl font-bold gradient-text">
-              MyBestRunning
+            <Link to="/" className="flex items-center space-x-2">
+              <img src={logo} alt="MyBestRunning Logo" className="h-10 w-auto" />
             </Link>
             
             {user && (
