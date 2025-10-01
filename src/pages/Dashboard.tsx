@@ -250,7 +250,7 @@ const Dashboard = () => {
             <p className="text-muted-foreground mb-6">Please complete your profile to get started with your training plan.</p>
             <Button 
               onClick={() => navigate('/profile')}
-              className="bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white"
+              className="gradient-bg hover:opacity-90 text-primary-foreground"
             >
               Complete Profile
             </Button>

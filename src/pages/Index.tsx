@@ -72,7 +72,7 @@ const Index = () => {
 
   // This component will only render for non-authenticated users
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-orange-50 dark:from-blue-950 dark:via-background dark:to-orange-950">
+    <div className="min-h-screen gradient-bg-subtle">
       <Navigation />
       
       <div className="container mx-auto px-4 py-16">
@@ -105,7 +105,7 @@ const Index = () => {
 
         {/* Features */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          <Card className="border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
+          <Card className="border-[hsl(var(--brand-blue-light))] hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <Target className="h-12 w-12 text-primary mx-auto mb-4" />
               <CardTitle className="text-foreground">Personalized Plans</CardTitle>
@@ -115,7 +115,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-orange-200 dark:border-orange-800 hover:shadow-lg transition-shadow">
+          <Card className="border-[hsl(var(--brand-orange-light))] hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <Calendar className="h-12 w-12 text-primary mx-auto mb-4" />
               <CardTitle className="text-foreground">Smart Scheduling</CardTitle>
@@ -125,7 +125,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
+          <Card className="border-[hsl(var(--brand-blue-light))] hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <Trophy className="h-12 w-12 text-primary mx-auto mb-4" />
               <CardTitle className="text-foreground">Race Ready</CardTitle>
@@ -135,7 +135,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-orange-200 dark:border-orange-800 hover:shadow-lg transition-shadow">
+          <Card className="border-[hsl(var(--brand-orange-light))] hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <BarChart3 className="h-12 w-12 text-primary mx-auto mb-4" />
               <CardTitle className="text-foreground">Progress Tracking</CardTitle>
