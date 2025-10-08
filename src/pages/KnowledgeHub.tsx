@@ -10,13 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Clock, User, ChevronRight, Star } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Category, Author, Article } from '@/types/article';
 
-// Define types for enriched data
-type Category = Tables<'categories'>;
-type Author = Tables<'authors'>;
-type Article = Tables<'articles'>;
-
+// Extended article type for Knowledge Hub (without article_tags)
 interface EnrichedArticle extends Article {
   categories: Category | null;
   authors: Author | null;
@@ -64,7 +60,7 @@ const KnowledgeHub = () => {
 
       const { data: authorsData } = await supabase
         .from('authors')
-        .select('*');
+        .select('id, name, bio, avatar_url, created_at, updated_at');
 
       // Combine the data
       const enrichedArticles: EnrichedArticle[] = (articlesData || []).map((article) => {
@@ -109,7 +105,7 @@ const KnowledgeHub = () => {
 
       const { data: authorsData } = await supabase
         .from('authors')
-        .select('*');
+        .select('id, name, bio, avatar_url, created_at, updated_at');
 
       // Combine the data
       const enrichedArticles: EnrichedArticle[] = (articlesData || []).map((article) => {
