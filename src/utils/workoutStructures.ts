@@ -2,6 +2,7 @@ export interface WorkoutStructureJson {
   warmup?: {
     duration: number;
     pace: string;
+    distance?: number; // May exist but should not be displayed
     description?: string;
   };
   main: Array<{
@@ -19,6 +20,7 @@ export interface WorkoutStructureJson {
   cooldown?: {
     duration: number;
     pace: string;
+    distance?: number; // May exist but should not be displayed
     description?: string;
   };
   description?: string;
@@ -118,9 +120,10 @@ export const generateWorkoutDescription = (
   try {
     const parts: string[] = [];
     
-    // Add warmup if present (cap at 10 minutes, no distance shown)
+    // Add warmup if present (cap at 10 minutes, explicitly no distance shown)
     if (structure.warmup) {
       const warmupDuration = Math.min(structure.warmup.duration, 10);
+      // Never show distance for warmup, only duration
       parts.push(`${warmupDuration}-min warmup`);
     }
     
@@ -178,9 +181,10 @@ export const generateWorkoutDescription = (
       }
     }
     
-    // Add cooldown if present (cap at 10 minutes, no distance shown)
+    // Add cooldown if present (cap at 10 minutes, explicitly no distance shown)
     if (structure.cooldown) {
       const cooldownDuration = Math.min(structure.cooldown.duration, 10);
+      // Never show distance for cooldown, only duration
       parts.push(`${cooldownDuration}-min cooldown`);
     }
     
