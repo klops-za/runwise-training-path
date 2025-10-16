@@ -1,1 +1,16 @@
 project_id = "xnlxsgtkrpgelrcplzin"
+
+[functions.paystack-init]
+verify_jwt = true
+
+[functions.paystack-verify]
+verify_jwt = true
+
+[functions.paystack-sync]
+verify_jwt = true
+
+[functions.create-lead]
+verify_jwt = false
+
+[functions.paystack-webhook]
+verify_jwt = false

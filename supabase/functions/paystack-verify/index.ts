@@ -47,8 +47,19 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const reference = body?.reference as string | undefined;
+    
+    // Validate reference format (security: prevent injection)
     if (!reference) {
       return new Response(JSON.stringify({ error: "Missing reference" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Validate reference format: alphanumeric, underscore, hyphen only
+    const referenceRegex = /^[a-zA-Z0-9_-]+$/;
+    if (!referenceRegex.test(reference) || reference.length < 15 || reference.length > 50) {
+      return new Response(JSON.stringify({ error: "Invalid reference format" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -76,6 +87,14 @@ serve(async (req) => {
 
     const metadata = verifyData?.data?.metadata || {};
     const planInterval = (metadata?.planInterval as "monthly" | "yearly") || "monthly";
+    
+    // Validate plan interval
+    if (planInterval !== 'monthly' && planInterval !== 'yearly') {
+      return new Response(JSON.stringify({ error: "Invalid plan interval" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Compute subscription dates
     const now = new Date();
@@ -89,6 +108,25 @@ serve(async (req) => {
     }
     const toISODate = (d: Date) => d.toISOString().split("T")[0];
 
+    // Check if this payment has already been processed (idempotency)
+    const { data: existingSub } = await supabase
+      .from("subscriptions")
+      .select("id")
+      .eq("payment_reference", reference)
+      .maybeSingle();
+    
+    if (existingSub) {
+      console.log("Payment already processed:", reference);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        tier: "Premium", 
+        planInterval,
+        message: "Subscription already activated"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Deactivate existing active subscriptions
     const { error: updateErr } = await supabase
       .from("subscriptions")
@@ -101,7 +139,7 @@ serve(async (req) => {
       // Continue anyway to try inserting the new one
     }
 
-    // Insert new Premium subscription
+    // Insert new Premium subscription with payment tracking
     const { error: insertErr } = await supabase
       .from("subscriptions")
       .insert({
@@ -110,6 +148,14 @@ serve(async (req) => {
         start_date: toISODate(start),
         end_date: toISODate(end),
         is_active: true,
+        payment_reference: reference,
+        payment_status: 'completed',
+        payment_metadata: {
+          amount: verifyData?.data?.amount,
+          reference,
+          planInterval,
+          processedAt: new Date().toISOString()
+        }
       });
 
     if (insertErr) {

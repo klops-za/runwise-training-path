@@ -461,6 +461,11 @@ export type Database = {
           end_date: string | null
           id: string
           is_active: boolean | null
+          payment_metadata: Json | null
+          payment_reference: string | null
+          payment_status:
+            | Database["public"]["Enums"]["payment_status_type"]
+            | null
           runner_id: string
           start_date: string | null
           tier: Database["public"]["Enums"]["tier_type"] | null
@@ -471,6 +476,11 @@ export type Database = {
           end_date?: string | null
           id?: string
           is_active?: boolean | null
+          payment_metadata?: Json | null
+          payment_reference?: string | null
+          payment_status?:
+            | Database["public"]["Enums"]["payment_status_type"]
+            | null
           runner_id: string
           start_date?: string | null
           tier?: Database["public"]["Enums"]["tier_type"] | null
@@ -481,6 +491,11 @@ export type Database = {
           end_date?: string | null
           id?: string
           is_active?: boolean | null
+          payment_metadata?: Json | null
+          payment_reference?: string | null
+          payment_status?:
+            | Database["public"]["Enums"]["payment_status_type"]
+            | null
           runner_id?: string
           start_date?: string | null
           tier?: Database["public"]["Enums"]["tier_type"] | null
@@ -809,6 +824,7 @@ export type Database = {
       experience_level_type: "Novice" | "Recreational" | "Competitive" | "Elite"
       gender_type: "Male" | "Female" | "Other"
       intensity_type: "Low" | "Moderate" | "High"
+      payment_status_type: "pending" | "completed" | "failed" | "refunded"
       phase_type: "Base" | "Build" | "Peak" | "Taper"
       race_type: "5K" | "10K" | "Half Marathon" | "Marathon"
       tier_type: "Free" | "Basic" | "Premium"
@@ -953,6 +969,7 @@ export const Constants = {
       experience_level_type: ["Novice", "Recreational", "Competitive", "Elite"],
       gender_type: ["Male", "Female", "Other"],
       intensity_type: ["Low", "Moderate", "High"],
+      payment_status_type: ["pending", "completed", "failed", "refunded"],
       phase_type: ["Base", "Build", "Peak", "Taper"],
       race_type: ["5K", "10K", "Half Marathon", "Marathon"],
       tier_type: ["Free", "Basic", "Premium"],

@@ -51,8 +51,25 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const plan = body?.plan as "monthly" | "yearly" | undefined;
 
+    // Validate plan parameter
     if (!plan || !["monthly", "yearly"].includes(plan)) {
-      return new Response(JSON.stringify({ error: "Invalid or missing plan" }), {
+      return new Response(JSON.stringify({ error: "Invalid or missing plan: must be 'monthly' or 'yearly'" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate user email format
+    if (!user.email) {
+      return new Response(JSON.stringify({ error: "User email not available" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(user.email)) {
+      return new Response(JSON.stringify({ error: "Invalid user email format" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

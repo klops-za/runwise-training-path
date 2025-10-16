@@ -58,41 +58,56 @@ const { toast } = useToast();
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('leads')
-        .insert({
+      // Call rate-limited edge function instead of direct insert
+      const { data, error } = await supabase.functions.invoke('create-lead', {
+        body: {
           name: formData.name,
           email: formData.email,
           goal_plan: formData.goal_plan,
           source: 'free-plan'
-        });
+        }
+      });
 
       if (error) {
-        if (error.code === '23505') { // Unique constraint violation
+        // Handle rate limiting
+        if (error.message?.includes('Rate limit')) {
           toast({
-            title: "Email Already Used",
-            description: "This email is already registered. Redirecting to your plan...",
+            title: "Too Many Requests",
+            description: error.message || "Please try again later.",
+            variant: "destructive"
           });
-        } else {
-          throw error;
+          return;
         }
-      } else {
-        toast({
-          title: "Success!",
-          description: "Your free plan is ready. Redirecting...",
-        });
+        throw error;
       }
+
+      if (data?.error) {
+        if (data.error.includes('Rate limit')) {
+          toast({
+            title: "Too Many Requests",
+            description: data.error,
+            variant: "destructive"
+          });
+          return;
+        }
+        throw new Error(data.error);
+      }
+
+      toast({
+        title: "Success!",
+        description: "Your free plan is ready. Redirecting...",
+      });
 
       // Redirect to free plans page with selected plan
       setTimeout(() => {
         navigate(`/plans/free?plan=${encodeURIComponent(formData.goal_plan)}`);
       }, 1000);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting form:', error);
       toast({
         title: "Something went wrong",
-        description: "Please try again or contact support.",
+        description: error.message || "Please try again or contact support.",
         variant: "destructive"
       });
     } finally {
