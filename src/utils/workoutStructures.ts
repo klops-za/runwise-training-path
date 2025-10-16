@@ -118,10 +118,10 @@ export const generateWorkoutDescription = (
   try {
     const parts: string[] = [];
     
-    // Add warmup if present
+    // Add warmup if present (cap at 10 minutes, no distance shown)
     if (structure.warmup) {
-      const warmupDistance = structure.warmup.duration * 0.05; // Assume 5km/h warmup pace
-      parts.push(`${structure.warmup.duration}-min warmup (${convertDistance(warmupDistance)})`);
+      const warmupDuration = Math.min(structure.warmup.duration, 10);
+      parts.push(`${warmupDuration}-min warmup`);
     }
     
     // Add main workout description
@@ -178,10 +178,10 @@ export const generateWorkoutDescription = (
       }
     }
     
-    // Add cooldown if present
+    // Add cooldown if present (cap at 10 minutes, no distance shown)
     if (structure.cooldown) {
-      const cooldownDistance = structure.cooldown.duration * 0.05; // Assume 5km/h cooldown pace
-      parts.push(`${structure.cooldown.duration}-min cooldown (${convertDistance(cooldownDistance)})`);
+      const cooldownDuration = Math.min(structure.cooldown.duration, 10);
+      parts.push(`${cooldownDuration}-min cooldown`);
     }
     
     return parts.length > 0 ? parts.join(' + ') : structure.description || `${workoutType} workout`;
